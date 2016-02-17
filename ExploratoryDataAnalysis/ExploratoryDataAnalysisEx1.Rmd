@@ -1,22 +1,63 @@
 ---
-title: "ExploratoryDataAnalysisEx1"
+title: "EDA Single Variable Exercise"
 author: "Vivek Appadurai"
 date: "February 17, 2016"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# R Markdown Document to Explore Price Per Carat of Diamonds Across Different Colors
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+### Using dplyr and ggplot2 packages for data maniulation and plotting
+
+Using the Diamonds Dataset
+
+```{r, message = FALSE, warning = FALSE}
+library(dplyr)
+library(ggplot2)
+data(diamonds)
+```
+
+### Glimpse of the diamonds dataset
 
 ```{r}
-summary(cars)
+glimpse(diamonds)
 ```
 
-You can also embed plots, for example:
+### Checking for the number of distinct colors
+
+Color G is most common 
+
+Color J is least common
+
+```{r}
+diamonds %>%
+    group_by(color) %>%
+    summarize(count = n())
+```
+
+### Create an additional column in the diamonds dataset by calculating price per carat using dplyr mutate
+
+```{r}
+diamonds <- diamonds %>% 
+    mutate(price_per_carat = price/carat)
+```
+
+### Generating a Boxplot to explore relationship between color and price per carat of diamonds
+
+Color H appears to have the highest median price/carat
+
+Colors D, E, F appear to have most outliers
+
+Color G has the largest interquartile range
 
 ```{r, echo=FALSE}
-plot(cars)
+ggplot(diamonds, aes(x = color, y = price_per_carat, fill = color)) + 
+    geom_boxplot() + 
+    theme_bw()
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### Creating text summaries of price per carat based on color
+
+```{r}
+by(diamonds$price_per_carat, diamonds$color, summary)
+```
