@@ -25,7 +25,7 @@ data(diamonds)
 glimpse(diamonds)
 ```
 
-### Checking for the number of distinct colors
+### Checking for the number of distinct colors and plotting a histogram of colors
 
 Color G is most common 
 
@@ -35,6 +35,10 @@ Color J is least common
 diamonds %>%
     group_by(color) %>%
     summarize(count = n())
+
+ggplot(data = diamonds, aes(x = color, fill = color)) +
+    geom_histogram() +
+    theme_bw()
 ```
 
 ### Create an additional column in the diamonds dataset by calculating price per carat using dplyr mutate
@@ -42,6 +46,16 @@ diamonds %>%
 ```{r}
 diamonds <- diamonds %>% 
     mutate(price_per_carat = price/carat)
+```
+
+### Plotting a histogram of price per carat faceted by color with the median price per carat indicated
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+ggplot(diamonds, aes(x = price_per_carat, fill = color)) + 
+    geom_histogram() + 
+    theme_bw() + 
+    facet_wrap(~color, ncol = 2) + 
+    geom_vline(linetype = "dotted", aes(xintercept = median(diamonds$price_per_carat)))
 ```
 
 ### Generating a Boxplot to explore relationship between color and price per carat of diamonds
@@ -56,7 +70,6 @@ Color G has the largest interquartile range
 ggplot(diamonds, aes(x = color, y = price_per_carat, fill = color)) + 
     geom_boxplot() + 
     theme_bw()
-ggsave("Price_per_Carat_vs_Color.png")
 ```
 
 ### Creating text summaries of price per carat based on color

@@ -37,7 +37,7 @@ glimpse(diamonds)
 ## $ z       (dbl) 2.43, 2.31, 2.31, 2.63, 2.75, 2.48, 2.47, 2.53, 2.49, ...
 ```
 
-### Checking for the number of distinct colors
+### Checking for the number of distinct colors and plotting a histogram of colors
 
 Color G is most common 
 
@@ -64,6 +64,14 @@ diamonds %>%
 ## 7      J  2808
 ```
 
+```r
+ggplot(data = diamonds, aes(x = color, fill = color)) +
+    geom_histogram() +
+    theme_bw()
+```
+
+![](ExploratoryDataAnalysisEx1_files/figure-html/unnamed-chunk-3-1.png)
+
 ### Create an additional column in the diamonds dataset by calculating price per carat using dplyr mutate
 
 
@@ -71,6 +79,10 @@ diamonds %>%
 diamonds <- diamonds %>% 
     mutate(price_per_carat = price/carat)
 ```
+
+### Plotting a histogram of price per carat faceted by color with the median price per carat indicated
+
+![](ExploratoryDataAnalysisEx1_files/figure-html/unnamed-chunk-5-1.png)
 
 ### Generating a Boxplot to explore relationship between color and price per carat of diamonds
 
@@ -80,11 +92,7 @@ Colors D, E, F appear to have most outliers
 
 Color G has the largest interquartile range
 
-![](ExploratoryDataAnalysisEx1_files/figure-html/unnamed-chunk-5-1.png)
-
-```
-## Saving 7 x 5 in image
-```
+![](ExploratoryDataAnalysisEx1_files/figure-html/unnamed-chunk-6-1.png)
 
 ### Creating text summaries of price per carat based on color
 
