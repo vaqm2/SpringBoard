@@ -2,7 +2,9 @@
 title: "EDA Single Variable Exercise"
 author: "Vivek Appadurai"
 date: "February 17, 2016"
-output: html_document
+output: 
+html_document:
+    keep_md: true
 ---
 
 # R Markdown Document to Explore Price Per Carat of Diamonds Across Different Colors
