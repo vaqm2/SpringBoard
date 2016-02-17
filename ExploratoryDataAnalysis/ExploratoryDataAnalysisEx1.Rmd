@@ -2,9 +2,9 @@
 title: "EDA Single Variable Exercise"
 author: "Vivek Appadurai"
 date: "February 17, 2016"
-output: 
-html_document:
-    keep_md: true
+output:
+    html_document:
+        keep_md: true
 ---
 
 # R Markdown Document to Explore Price Per Carat of Diamonds Across Different Colors
@@ -56,6 +56,7 @@ Color G has the largest interquartile range
 ggplot(diamonds, aes(x = color, y = price_per_carat, fill = color)) + 
     geom_boxplot() + 
     theme_bw()
+ggsave("Price_per_Carat_vs_Color.png")
 ```
 
 ### Creating text summaries of price per carat based on color
