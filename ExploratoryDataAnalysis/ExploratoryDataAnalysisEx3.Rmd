@@ -1,0 +1,80 @@
+---
+title: "EDA Multiple Variabel Exercise"
+author: "Vivek Appadurai"
+date: "February 21, 2016"
+output: 
+    html_document:
+        keep_md: true
+---
+
+### Loading Libraries
+
+```{r, message = FALSE}
+library(ggplot2)
+library(dplyr)
+data(diamonds)
+```
+
+### Plotting histogram of diamond prices, faceted by color, filled by cut
+
+```{r}
+ggplot(diamonds, aes(x = price, fill = cut)) + 
+    geom_histogram(binwidth = 100) + 
+    facet_wrap(~ color) + 
+    theme_bw()
+```
+
+### Plotting price vs table, fill by cut
+
+```{r}
+ggplot(diamonds, aes(x = table, y = price, color = cut)) + 
+    geom_point() + 
+    scale_x_continuous(breaks = seq(0, 100, 2)) +
+    theme_bw()
+```
+
+### Creating a Volume Column, plotting price vs volume, colored by clarity, omitting top 1 percentile volume diamonds
+
+```{r, warning = FALSE}
+diamonds <- diamonds %>%
+    mutate(volume = x * y * z)
+
+ggplot(diamonds, aes(x = volume, y = price, color = clarity)) + 
+    geom_point() + 
+    scale_x_continuous(limits = quantile(diamonds$volume, c(0,0.9))) +
+    theme_bw()
+```
+
+Creating a new variable prop_initiated in pseudo facebook dataframe using dplyr, mutate and ifelse statement
+
+```{r}
+pf <- read.delim('pseudo_facebook.tsv')
+pf <- pf %>% 
+    mutate(prop_initiated = ifelse(friend_count > 0, friendships_initiated / (friend_count), 0))
+pf %>% head()
+```
+
+Creating a new year joined variable in pseudo facebook data, binning the data by years and plotting tenure vs proportion of friendships initiated, colored by year joined bin and smoothing
+
+```{r}
+pf <- pf %>% mutate(year_joined = floor(2014 - tenure/365))
+
+pf$year_joined.bucket <- cut(pf$year_joined, breaks = c(2004, 2009, 2011, 2012, 2014))
+
+ggplot(pf, aes(x = tenure, y = prop_initiated, color = year_joined.bucket)) +
+    geom_smooth(stat = 'summary', fun.y = 'median') +
+    theme_bw()
+
+pf %>% group_by(year_joined.bucket) %>%
+    summarise(mean = mean(prop_initiated))
+```
+
+Plotting cut vs price to carat ratio of diamonds, colored by diamond color, faceted by clarity, rotating axis labels for better visualization
+
+```{r}
+ggplot(diamonds, aes(x = cut, y = price/carat, color = color)) +
+    geom_jitter() +
+    facet_wrap(~ clarity) +
+    theme(axis.text.x = element_text(angle = 90)) +
+    theme_bw()
+```
