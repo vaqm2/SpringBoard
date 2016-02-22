@@ -2,36 +2,16 @@
 Vivek Appadurai  
 February 20, 2016  
 
-Loaing Libraries
+## Loading Libraries
 
 
 ```r
 library(dplyr)
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
 library(ggplot2)
-library(reshape2)
+library(scales)
 ```
 
-Reading Data
+## Reading Data
 
 
 ```r
@@ -59,6 +39,8 @@ ticDataTest <- read.table("ticeval2000.txt",
                           quote = "",
                           stringsAsFactors = FALSE)
 ```
+
+## Data Cleaning
 
 
 ```r
@@ -104,13 +86,115 @@ ticData <- left_join(ticData, L4)
 ## Joining by: "PWAPART"
 ```
 
+```r
+ticData$CARAVAN <- factor(ticData$CARAVAN)
+```
+
+## Exploratory Data Analysis
+
+### Customer Subtype
+
 
 ```r
-ggplot(ticData, aes(x = MAANTHUI, y = CARAVAN)) + geom_point()
-```
-
-```
-## Warning: Removed 4000 rows containing missing values (geom_point).
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = MOSTYPE2, fill = CARAVAN)) + 
+    geom_bar(position = "fill") +
+    xlab("Customer SubType") +
+    ylab("Proportion") +
+    theme_bw() + 
+    coord_flip() +
+    scale_y_continuous(labels = percent)
 ```
 
 ![](CapstoneProject_files/figure-html/unnamed-chunk-4-1.png)
+
+### Customer Maintype
+
+
+```r
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = MOSHOOFD2, fill = CARAVAN)) + 
+    geom_bar(position = "fill") +
+    xlab("Customer MainType") +
+    ylab("Proportion") +
+    theme_bw() + 
+    coord_flip() +
+    scale_y_continuous(labels = percent)
+```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-5-1.png)
+
+### Percentage of Roman Catholics by ZipCode
+
+
+```r
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = MGODRK2, fill = CARAVAN)) + 
+    geom_bar(position = "fill") +
+    xlab("Percentage Roman Catholics by ZipCode") +
+    ylab("Proportion") +
+    theme_bw() + 
+    coord_flip() +
+    scale_y_continuous(labels = percent) + 
+    scale_x_discrete(labels = c("0%", "1-10%", "11-23%", "24-36%", "37-49%", "50-62%", "63-75%", "76-88%", "89-99%", "100%"))
+```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-6-1.png)
+
+### Contribution to Private Third Party Insurance
+
+
+```r
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = PWAPART2, fill = CARAVAN)) + 
+    geom_bar(position = "fill") +
+    xlab("Private Third Party Insurance Contribution") +
+    ylab("Proportion") +
+    theme_bw() + 
+    coord_flip() +
+    scale_y_continuous(labels = percent) +
+    scale_x_discrete(labels = c("0", "1-49", "50-99", "100-199", 
+                                "200-499", "500-999", "1000-4999", 
+                                "5000-9999", "10,000-19,999", ">20,000"))
+```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-7-1.png)
+
+### Average Age
+
+
+```r
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = MGEMLEEF2, fill = CARAVAN)) + 
+    geom_bar(position = "fill") +
+    xlab("Average Age") +
+    ylab("Proportion") +
+    theme_bw() + 
+    coord_flip() +
+    scale_y_continuous(labels = percent)
+```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-8-1.png)
+
+### Purchasing Power Class
+
+
+```r
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = CARAVAN, y = MKOOPKLA, fill = CARAVAN)) +
+    geom_boxplot() +
+    theme_bw() +
+    xlab("CARAVAN") +
+    ylab("Purchasing Power Class") +
+    coord_flip()
+```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-9-1.png)
+
+### High Status
+
+
+```r
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = CARAVAN, y = MBERHOOG, fill = CARAVAN)) +
+    geom_boxplot() +
+    theme_bw() +
+    xlab("CARAVAN") +
+    ylab("Number of High Status people") +
+    coord_flip()
+```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-10-1.png)
