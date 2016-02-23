@@ -1,50 +1,50 @@
 Nr	Name	Description	Domain
-1	MOSTYPE	CustomerSubtype	see L0
-2	MAANTHUI	Numberofhouses1-10
-3	MGEMOMV	Avgsizehousehold1-6
-4	MGEMLEEF	Avgage	see L1
-5	MOSHOOFD	Customermaintype	see L2
-6	MGODRK	Romancatholic	see L3
+1	MOSTYPE	CustomerSubType	see L0
+2	MAANTHUI	NumberOfHouses1-10
+3	MGEMOMV	Avg.Household.Size1-6
+4	MGEMLEEF	Avg.Age	see L1
+5	MOSHOOFD	CustomerMainType	see L2
+6	MGODRK	Roman.Catholic	see L3
 7	MGODPR	Protestant
-8	MGODOV	Otherreligion
-9	MGODGE	Noreligion
+8	MGODOV	Other.Religion
+9	MGODGE	No.Religion
 10	MRELGE	Married
-11	MRELSA	Livingtogether
-12	MRELOV	Otherrelation
+11	MRELSA	LivingTogether
+12	MRELOV	OtherRelation
 13	MFALLEEN	Singles
-14	MFGEKIND	Householdwithoutchildren
-15	MFWEKIND	Householdwithchildren
-16	MOPLHOOG	Highleveleducation
+14	MFGEKIND	HouseholdWithoutChildren
+15	MFWEKIND	HouseholdWithChildren
+16	MOPLHOOG	HighLevelEducation
 17	MOPLMIDD	Mediumleveleducation
-18	MOPLLAAG	Lowerleveleducation
-19	MBERHOOG	Highstatus
+18	MOPLLAAG	LowerLevelEducation
+19	MBERHOOG	HighStatus
 20	MBERZELF	Entrepreneur
 21	MBERBOER	Farmer
-22	MBERMIDD	Middlemanagement
-23	MBERARBG	Skilledlabourers
-24	MBERARBO	Unskilledlabourers
-25	MSKA	SocialclassA
-26	MSKB1	SocialclassB1
-27	MSKB2	SocialclassB2
-28	MSKC	SocialclassC
-29	MSKD	SocialclassD
-30	MHHUUR	Rentedhouse
-31	MHKOOP	Homeowners
+22	MBERMIDD	MiddleManagement
+23	MBERARBG	SkilledLabourers
+24	MBERARBO	UnskilledLabourers
+25	MSKA	SocialClassA
+26	MSKB1	SocialClassB1
+27	MSKB2	SocialClassB2
+28	MSKC	SocialClassC
+29	MSKD	SocialClassD
+30	MHHUUR	RentedHouse
+31	MHKOOP	HomeOwners
 32	MAUT1	1car
 33	MAUT2	2cars
-34	MAUT0	Nocar
+34	MAUT0	NoCar
 35	MZFONDS	NationalHealthService
-36	MZPART	Privatehealthinsurance
+36	MZPART	PrivateHealthInsurance
 37	MINKM30	Income<30.000
 38	MINK3045	Income30-45.000
 39	MINK4575	Income45-75.000
 40	MINK7512	Income75-122.000
 41	MINK123M	Income>123.000
-42	MINKGEM	Averageincome
-43	MKOOPKLA	Purchasingpowerclass
-44	PWAPART	Contributionprivatethirdpartyinsurance	see L4
-45	PWABEDR	Contributionthirdpartyinsurance(firms)
-46	PWALAND	Contributionthirdpartyinsurane(agriculture)
+42	MINKGEM	Avg.Income
+43	MKOOPKLA	PurchasingPowerClass
+44	PWAPART	Third.Party.Insurance.Contribution	see L4
+45	PWABEDR	Third.Party.Insurance.Contribution(firms)
+46	PWALAND	Third.Party.Insurance.Contribution(agriculture)
 47	PPERSAUT	Contributioncarpolicies
 48	PBESAUT	Contributiondeliveryvanpolicies
 49	PMOTSCO	Contributionmotorcycle/scooterpolicies
