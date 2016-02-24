@@ -1,0 +1,127 @@
+```{r, fig.width = 8, fig.height = 10, warning = FALSE}
+
+label_names <- list('MAANTHUI' = "Number of Houses",
+                    'MGEMOMV'  = "Avg. Household Size",
+                    'MGEMLEEF' = "Average Age",
+                    'MGODRK'   = "Roman Catholics",
+                    'MGODPR'   = "Protestants",
+                    'MGODOV'   = "Other Religion",
+                    'MGODGE'   = "No Religion",
+                    'MRELGE'   = "Married",
+                    'MRELSA'   = "Living Together",
+                    'MRELOV'   = "Other Relation",
+                    'MFALLEEN' = "Singles",
+                    'MFGEKIND' = "No. Child Households",
+                    'MFWEKIND' = "Child Households",
+                    'MOPLHOOG' = "High Level Ed",
+                    'MOPLMIDD' = "Med. Level Ed",
+                    'MOPLLAAG' = "Low. Level Ed",
+                    'MBERHOOG' = "High Status",
+                    'MBERZELF' = "Entrepreneur",
+                    'MBERBOER' = "Farmer",
+                    'MBERMIDD' = "Mid. Management",
+                    'MBERARBG' = "Skilled Labor",
+                    'MBERARBO' = "Unskilled Labor",
+                    'MSKA'     = "Social Class A",
+                    'MSKB1'    = "Social Class B1",
+                    'MSKB2'    = "Social Class B2",
+                    'MSKC'     = "Social Class C",
+                    'MSKD'     = "Social Class D",
+                    'MHHUUR'   = "Rented House",
+                    'MHKOOP'   = "Home Owners",
+                    'MAUT1'    = "1 CAR",
+                    'MAUT2'    = "2 CAR",
+                    'MAUT0'    = "No CAR",
+                    'MZFONDS'  = "Nat. Health Service",
+                    'MZPART'   = "Pvt. Health Insurance",
+                    'MINKM30'  = "Income < 30k",
+                    'MINK3045' = "30k < Income < 40k",
+                    'MINK4575' = "45k < Income < 75k",
+                    'MINK7512' = "75k < Income < 122k",
+                    'MINK123M' = "Income > 123k",
+                    'MINKGEM'  = "Avg. Income",
+                    'MKOOPKLA' = "Purchasing Power",
+                    'thirdPartyInsurancelevel' = "3rd Party Insurance",
+                    'thirdPartyInsruancelevelFirm' = "3rd Party Insurance - Firms",
+                    'thirdPartyInsuranceLevelAgriculture' = "3rd Party Insurance - Agri",
+                    'carPolicyLevel' = "Car Policies",
+                    'vanPolicyLevel' = "Van Policies",
+                    'scooterPolicyLevel' = "Scooter Policies",
+                    'lorryPolicyLevel' = "Lorry Policies",
+                    'trailerPolicyLevel' = "Trailer Policies",
+                    'tractorPolicyLevel' = "Tractor Policies",
+                    'agriMachinePolicyLevel' = "Agricultural Machine Policies",
+                    'mopedPolicyLevel' = "Moped Policies",
+                    'lifeInsuranceLevel' = "Life Insurance",
+                    'pvtAccidentInsuranceLevel' = "Pvt. Accident Insurance",
+                    'famAccidentInsuranceLevel' = "Family Accident Insurance",
+                    'disabilityInsuranceLevel' = "Disability Insurance",
+                    'fireInsuranceLevel' = "Fire Insurance",
+                    'surfInsuranceLevel' = "Surfboard Insurance",
+                    'boatInsuranceLevel' = "Boat Insurance",
+                    'bikeInsuranceLevel' = "Bike Insurance",
+                    'propertyInsuranceLevel' = "Property Insurance",
+                    'SocSecInsuranceLevel' = "Social Security Insurance")
+
+facet_labeller <- function(variable,value)
+                  {
+                    return(label_names[value])
+                  }
+
+ggplot(ticDataDerived, aes(x = value, fill = CARAVAN)) +
+    geom_bar(position = "fill") +
+    facet(~ variable) +
+    theme_bw()
+```
+
+### Customer Subtype
+
+```{r, fig.height = 10, fig.width = 8}
+
+table(ticData %>% filter(!is.na(CARAVAN)) %>% select(MOSTYPE2))
+
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = MOSTYPE2, fill = CARAVAN)) + 
+    geom_bar(stat = "count") +
+    xlab("Customer SubType") +
+    ylab("Count") +
+    theme_bw() + 
+    coord_flip()
+
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = MOSTYPE2, fill = CARAVAN)) + 
+    geom_bar(position = "fill") +
+    xlab("Customer SubType") +
+    ylab("Proportion") +
+    theme_bw() + 
+    coord_flip() +
+    scale_y_continuous(labels = percent)
+```
+
+### Customer Maintype
+
+```{r, fig.height = 4, fig.width = 8}
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = MOSHOOFD2, fill = CARAVAN)) + 
+    geom_bar(stat = "count") +
+    xlab("Customer MainType") +
+    ylab("Count") +
+    theme_bw() + 
+    coord_flip()
+
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = MOSHOOFD2, fill = CARAVAN)) + 
+    geom_bar(position = "fill") +
+    xlab("Customer MainType") +
+    ylab("Proportion") +
+    theme_bw() + 
+    coord_flip() +
+    scale_y_continuous(labels = percent)
+```
+
+### Investigating Numeric Variables
+
+```{r, fig.height = 4, fig.width = 8}
+ggplot(ticData %>% filter(!is.na(CARAVAN)), aes(x = fireInsuranceLevel, fill = CARAVAN)) + 
+    geom_bar(aes(y = ..count../sum(..count..))) +
+    xlab("Fire Insurance Level") +
+    ylab("Count") +
+    theme_bw() + 
+    coord_flip()
+```

@@ -84,47 +84,80 @@ ticData <- ticData %>% mutate(bikeInsuranceLevel = AFIETS * PFIETS)
 ticData <- ticData %>% mutate(propertyInsuranceLevel = AINBOED * PINBOED)
 ticData <- ticData %>% mutate(SocSecInsurancelevel = ABYSTAND * PBYSTAND)
 
-ticDataDerived <- ticData[,c(1:43,86:109)]
-
-ticDataDerived <- ticDataDerived %>% 
+ticData <- ticData %>% 
     filter(!is.na(CARAVAN)) %>%
-    melt(id.vars = c("MOSTYPE", "MOSTYPE2", "MOSHOOFD", "MOSHOOFD2", "CARAVAN"))
+    group_by(fireInsuranceLevel) %>% 
+    mutate(percent_caravan_fire = sum(CARAVAN)/n())
 
-ticDataDerived <- ticDataDerived %>% 
-    group_by(variable) %>% 
-    mutate(num.Caravan.Buyers = sum(CARAVAN))
+ticData <- ticData %>% 
+    filter(!is.na(CARAVAN)) %>%
+    group_by(APERSAUT) %>% 
+    mutate(percent_caravan_car = sum(CARAVAN)/n())
 
-glimpse(ticDataDerived)
+ticData <- ticData %>% 
+    filter(!is.na(CARAVAN)) %>%
+    group_by(APERSAUT) %>% 
+    mutate(percent_caravan_car = sum(CARAVAN)/n())
+
+ticData <- ticData %>%
+    filter(!is.na(CARAVAN)) %>%
+    group_by(MKOOPKLA) %>%
+    mutate(percent_caravan_power = sum(CARAVAN)/n())
 ```
 
-```
-## Observations: 360,964
-## Variables: 8
-## $ MOSTYPE            (int) 33, 37, 37, 9, 40, 23, 39, 33, 33, 11, 10, ...
-## $ MOSTYPE2           (fctr) Lowerclasslargefamilies, Mixedsmalltowndwe...
-## $ MOSHOOFD           (int) 8, 8, 8, 3, 10, 5, 9, 8, 8, 3, 3, 3, 8, 10,...
-## $ MOSHOOFD2          (fctr) Familywithgrownups, Familywithgrownups, Fa...
-## $ CARAVAN            (int) 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...
-## $ variable           (fctr) MAANTHUI, MAANTHUI, MAANTHUI, MAANTHUI, MA...
-## $ value              (int) 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1...
-## $ num.Caravan.Buyers (int) 348, 348, 348, 348, 348, 348, 348, 348, 348...
-```
+## Exploratory Data Analysis
+
 
 ```r
-summary(ticDataDerived$num.Caravan.Buyers)
+#ggplot(ticData, aes(x = fireInsuranceLevel, y = percent_caravan_fire)) +
+ #   geom_bar(stat = "identity") +
+  #  geom_point() + 
+   # geom_line() +
+    #theme_bw() +
+    #scale_x_continuous(breaks = seq(0, max(ticData$fireInsuranceLevel), 1))
+
+#ggplot(ticData, aes(x = APERSAUT, y = percent_caravan_car)) +
+ #   geom_bar(stat = "identity")
+ #   geom_point() + 
+  #  geom_line() +
+   # theme_bw() +
+   # scale_x_continuous(breaks = seq(0, max(ticData$APERSAUT), 1))
 ```
 
-```
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##     348     348     348     348     348     348
-```
 
 ```r
-knit_exit()
+ggplot(ticData, aes(x = fireInsuranceLevel, y = percent_caravan_fire)) +
+    geom_point() +
+    theme_bw()
 ```
 
+![](CapstoneProject_files/figure-html/unnamed-chunk-5-1.png)
 
+```r
+ggplot(ticData, aes(x = fireInsuranceLevel)) +
+    geom_bar(aes(y = ..count../sum(..count..), fill = "blue")) +
+    scale_fill_manual(values = c("blue")) +
+    geom_point(aes(y = percent_caravan_fire, color = "red")) +
+    geom_line(aes(y = percent_caravan_fire, color = "black"), linetype = 2) +
+    theme_bw()
+```
 
+![](CapstoneProject_files/figure-html/unnamed-chunk-5-2.png)
 
+```r
+ggplot(ticData, aes(x = APERSAUT)) +
+    geom_bar(aes(y = ..count../sum(..count..), fill = "steelblue")) +
+    geom_point(aes(y = percent_caravan_car), color = "red") +
+    theme_bw()
+```
 
+![](CapstoneProject_files/figure-html/unnamed-chunk-5-3.png)
 
+```r
+ggplot(ticData, aes(x = MKOOPKLA)) +
+    geom_bar(aes(y = ..count../sum(..count..), fill = "steelblue")) +
+    geom_point(aes(y = percent_caravan_power), color = "red") +
+    theme_bw()
+```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-5-4.png)
