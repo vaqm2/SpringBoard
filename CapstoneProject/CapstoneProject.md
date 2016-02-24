@@ -1285,3 +1285,65 @@ grid.arrange(plotHomesOwned, plotHouseHoldSize, PlotAvgAge, plotRomanCatholics, 
 ```
 
 ![](CapstoneProject_files/figure-html/unnamed-chunk-5-1.png)
+
+#### Observations:
+
+From the plots the following conditions imply a higher proportion of caravan policy owners than expected:
+
+1. Zipcodes with a less number of low level educated people
+2. Zipcodes with very high status people
+3. Zipcodes with NO FARMERS
+4. Zipcodes with low number of laborers (skilled & unskilled)
+5. Zipcodes with low number of people belonging to social classes C & D
+6. Zipcodes having a very high number of Home Owners
+7. Zipcodes with low or no rented homes
+8. Zipcodes having a high car ownership
+9. Zipcodes having little to no population with income < 30k
+10. Zipcodes with average income households
+11. Zipcodes with high purchasing power >= 6
+12. Individuals that have a private third party insurance
+13. Individuals with contributions to third party insurance
+14. Individuals with one or more car policy
+15. Individuals with contributions to their car policies
+16. Individuals with Fire Insurance Policy
+17. Individuals making contributions to fire insurance policies
+
+The above factors are worth further investigation to draw more concrete trends
+
+
+```r
+ggplot(ticDataTraining, aes(x = APERSAUT, y = PPERSAUT, color = as.factor(CARAVAN))) +
+    geom_jitter() + 
+    xlab("Num. Car Policies") +
+    ylab("Contributions") +
+    theme_bw() +
+    scale_x_continuous(breaks =seq(0, max(ticData$APERSAUT), 1))
+```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-6-1.png)
+
+The plot indicates that people who have a car policy tend to contribute significantly towards it.
+
+
+```r
+ggplot(ticDataTraining, aes(x = AWAPART, y = PWAPART, color = as.factor(CARAVAN))) +
+    geom_jitter() + 
+    xlab("Private Third Party Insurance") +
+    ylab("Contributions") +
+    theme_bw() +
+    scale_x_continuous(breaks =seq(0, max(ticData$AWAPART), 1))
+```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-7-1.png)
+
+
+```r
+ggplot(ticDataTraining, aes(x = ABRAND, y = PBRAND, color = as.factor(CARAVAN))) +
+    geom_jitter() + 
+    xlab("Num. Fire Policies") +
+    ylab("Contributions") +
+    theme_bw() +
+    scale_x_continuous(breaks =seq(0, max(ticData$ABRAND), 1))
+```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-8-1.png)
