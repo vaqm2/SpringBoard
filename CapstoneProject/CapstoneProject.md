@@ -43,7 +43,7 @@ ticDataTest <- read.table("ticeval2000.txt",
                           stringsAsFactors = FALSE)
 ```
 
-## Data Cleaning and Deriving New Variables from Current Data
+## Data Cleaning
 
 
 ```r
@@ -65,28 +65,6 @@ ticData <- left_join(ticData, L2)
 ```
 
 ```r
-ticData <- ticData %>% mutate(thirdPartyInsuranceLevel = AWAPART * PWAPART)
-ticData <- ticData %>% mutate(thirdPartyInsuranceLevelFirm = AWABEDR * PWABEDR)
-ticData <- ticData %>% mutate(thirdPartyInsuranceLevelAgriculture = AWALAND * PWALAND)
-ticData <- ticData %>% mutate(carPolicyLevel = APERSAUT * PPERSAUT)
-ticData <- ticData %>% mutate(vanPolicyLevel = ABESAUT * PBESAUT)
-ticData <- ticData %>% mutate(scooterPolicyLevel = AMOTSCO * PMOTSCO)
-ticData <- ticData %>% mutate(lorryPolicyLevel = AVRAAUT * PVRAAUT)
-ticData <- ticData %>% mutate(trailerPolicyLevel = AAANHANG * PAANHANG)
-ticData <- ticData %>% mutate(tractorPolicyLevel = ATRACTOR * PTRACTOR)
-ticData <- ticData %>% mutate(agriMachinePolicyLevel = AWERKT * PWERKT)
-ticData <- ticData %>% mutate(mopedPolicyLevel = ABROM * PBROM)
-ticData <- ticData %>% mutate(lifeInsuranceLevel = ALEVEN * PLEVEN)
-ticData <- ticData %>% mutate(pvtAccidentInsuranceLevel = APERSONG * PPERSONG)
-ticData <- ticData %>% mutate(famAccidentInsuranceLevel = AGEZONG * PGEZONG)
-ticData <- ticData %>% mutate(disabilityInsuranceLevel = AWAOREG * PWAOREG)
-ticData <- ticData %>% mutate(fireInsuranceLevel = ABRAND * PBRAND)
-ticData <- ticData %>% mutate(surfInsuranceLevel = AZEILPL * PZEILPL)
-ticData <- ticData %>% mutate(boatInsuranceLevel = APLEZIER * PPLEZIER)
-ticData <- ticData %>% mutate(bikeInsuranceLevel = AFIETS * PFIETS)
-ticData <- ticData %>% mutate(propertyInsuranceLevel = AINBOED * PINBOED)
-ticData <- ticData %>% mutate(SocSecInsuranceLevel = ABYSTAND * PBYSTAND)
-
 ticDataTraining <- ticData %>% filter(Set == "Training")
 ticDataTraining <- ticDataTraining %>% mutate(totalCaravanPolicies = sum(CARAVAN))
 ```
@@ -688,16 +666,16 @@ plotNumThirdPartyIns <- ggplot(data = ticDataTraining, aes(x = AWAPART)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(thirdPartyInsuranceLevel) %>%
+    group_by(PWAPART) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotNumThirdPartyInsLevel <- ggplot(data = ticDataTraining, aes(x = thirdPartyInsuranceLevel)) +
+plotNumThirdPartyInsCont <- ggplot(data = ticDataTraining, aes(x = PWAPART)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$thirdPartyInsuranceLevel), 1)) +
-    xlab("No. of 3rd Party Insurances * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PWAPART), 1)) +
+    xlab("3rd Party Insurance Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -716,16 +694,16 @@ plotNumThirdPartyInsFirm <- ggplot(data = ticDataTraining, aes(x = AWABEDR)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(thirdPartyInsuranceLevelFirm) %>%
+    group_by(PWABEDR) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotNumThirdPartyInsFirmLevel <- ggplot(data = ticDataTraining, aes(x = thirdPartyInsuranceLevelFirm)) +
+plotNumThirdPartyInsFirmCont <- ggplot(data = ticDataTraining, aes(x = PWABEDR)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$thirdPartyInsuranceLevelFirm), 2)) +
-    xlab("No. of 3rd Party Insurances for FIRMS * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PWABEDR), 2)) +
+    xlab("3rd Party Insurance Contributions for Firms") +
     ylab("Proportion") +
     theme_bw()
 
@@ -744,16 +722,16 @@ plotNumThirdPartyInsAgri <- ggplot(data = ticDataTraining, aes(x = AWALAND)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(thirdPartyInsuranceLevelAgriculture) %>%
+    group_by(PWALAND) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotNumThirdPartyInsAgriLevel <- ggplot(data = ticDataTraining, aes(x = thirdPartyInsuranceLevelAgriculture)) +
+plotNumThirdPartyInsAgriCont <- ggplot(data = ticDataTraining, aes(x = PWALAND)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$thirdPartyInsuranceLevelAgriculture), 1)) +
-    xlab("No. of 3rd Party Insurances for Agriculture * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PWALAND), 1)) +
+    xlab("3rd Party Insurance Contributions - Agriculture") +
     ylab("Proportion") +
     theme_bw()
 
@@ -772,16 +750,16 @@ plotCarPolicy <- ggplot(data = ticDataTraining, aes(x = APERSAUT)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(carPolicyLevel) %>%
+    group_by(PPERSAUT) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotCarPolicyLevel <- ggplot(data = ticDataTraining, aes(x = carPolicyLevel)) +
+plotCarPolicyCont <- ggplot(data = ticDataTraining, aes(x = PPERSAUT)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$carPolicyLevel), 4)) +
-    xlab("No. of Car Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PPERSAUT), 4)) +
+    xlab("Car Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -800,16 +778,16 @@ plotVanPolicy <- ggplot(data = ticDataTraining, aes(x = ABESAUT)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(vanPolicyLevel) %>%
+    group_by(PBESAUT) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotVanPolicyLevel <- ggplot(data = ticDataTraining, aes(x = vanPolicyLevel)) +
+plotVanPolicyCont <- ggplot(data = ticDataTraining, aes(x = PBESAUT)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$vanPolicyLevel), 2)) +
-    xlab("No. of Delivery Van Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PBESAUT), 2)) +
+    xlab("Van Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -828,16 +806,16 @@ plotScooterPolicy <- ggplot(data = ticDataTraining, aes(x = AMOTSCO)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(scooterPolicyLevel) %>%
+    group_by(PMOTSCO) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotScooterPolicyLevel <- ggplot(data = ticDataTraining, aes(x = scooterPolicyLevel)) +
+plotScooterPolicyCont <- ggplot(data = ticDataTraining, aes(x = PMOTSCO)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$scooterPolicyLevel), 4)) +
-    xlab("No. of Scooter Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PMOTSCO), 4)) +
+    xlab("Scooter Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -856,16 +834,16 @@ plotLorryPolicy <- ggplot(data = ticDataTraining, aes(x = AVRAAUT)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(lorryPolicyLevel) %>%
+    group_by(PVRAAUT) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotLorryPolicyLevel <- ggplot(data = ticDataTraining, aes(x = lorryPolicyLevel)) +
+plotLorryPolicyCont <- ggplot(data = ticDataTraining, aes(x = PVRAAUT)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$lorryPolicyLevel), 2)) +
-    xlab("No. of Lorry Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PVRAAUT), 2)) +
+    xlab("Lorry Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -884,16 +862,16 @@ plotTrailerPolicy <- ggplot(data = ticDataTraining, aes(x = AAANHANG)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(trailerPolicyLevel) %>%
+    group_by(PAANHANG) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotTrailerPolicyLevel <- ggplot(data = ticDataTraining, aes(x = trailerPolicyLevel)) +
+plotTrailerPolicyCont <- ggplot(data = ticDataTraining, aes(x = PAANHANG)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$trailerPolicyLevel), 1)) +
-    xlab("No. of Trailer Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PAANHANG), 1)) +
+    xlab("Trailer Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -912,16 +890,16 @@ plotTractorPolicy <- ggplot(data = ticDataTraining, aes(x = ATRACTOR)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(tractorPolicyLevel) %>%
+    group_by(PTRACTOR) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotTractorPolicyLevel <- ggplot(data = ticDataTraining, aes(x = tractorPolicyLevel)) +
+plotTractorPolicyCont <- ggplot(data = ticDataTraining, aes(x = PTRACTOR)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$tractorPolicyLevel), 2)) +
-    xlab("No. of Tractor Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PTRACTOR), 2)) +
+    xlab("Tractor Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -940,16 +918,16 @@ plotAgriMachinePolicy <- ggplot(data = ticDataTraining, aes(x = AWERKT)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(agriMachinePolicyLevel) %>%
+    group_by(PWERKT) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotAgriMachinePolicyLevel <- ggplot(data = ticDataTraining, aes(x = agriMachinePolicyLevel)) +
+plotAgriMachinePolicyCont <- ggplot(data = ticDataTraining, aes(x = PWERKT)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$agriMachinePolicyLevel), 2)) +
-    xlab("No. of Agricultural Machine Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PWERKT), 2)) +
+    xlab("Agricultural Machine Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -968,16 +946,16 @@ plotMopedPolicy <- ggplot(data = ticDataTraining, aes(x = ABROM)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(mopedPolicyLevel) %>%
+    group_by(PBROM) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotMopedPolicyLevel <- ggplot(data = ticDataTraining, aes(x = mopedPolicyLevel)) +
+plotMopedPolicyCont <- ggplot(data = ticDataTraining, aes(x = PBROM)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$mopedPolicyLevel), 1)) +
-    xlab("No. of Moped Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PBROM), 1)) +
+    xlab("Moped Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -996,16 +974,16 @@ plotLifePolicy <- ggplot(data = ticDataTraining, aes(x = ALEVEN)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(lifeInsuranceLevel) %>%
+    group_by(PLEVEN) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotLifePolicyLevel <- ggplot(data = ticDataTraining, aes(x = lifeInsuranceLevel)) +
+plotLifePolicyCont <- ggplot(data = ticDataTraining, aes(x = PLEVEN)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 4) +
-    scale_x_continuous(breaks = seq(0, max(ticData$lifeInsuranceLevel), 4)) +
-    xlab("No. of Life Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PLEVEN), 4)) +
+    xlab("Life Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -1024,16 +1002,16 @@ plotPvtAccidentPolicy <- ggplot(data = ticDataTraining, aes(x = APERSONG)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(pvtAccidentInsuranceLevel) %>%
+    group_by(PPERSONG) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotPvtAccidentPolicyLevel <- ggplot(data = ticDataTraining, aes(x = pvtAccidentInsuranceLevel)) +
+plotPvtAccidentPolicyCont <- ggplot(data = ticDataTraining, aes(x = PPERSONG)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$pvtAccidentInsuranceLevel), 1)) +
-    xlab("No. of Private Accident Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PPERSONG), 1)) +
+    xlab("Private Accident Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -1052,16 +1030,16 @@ plotFamAccidentPolicy <- ggplot(data = ticDataTraining, aes(x = AGEZONG)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(famAccidentInsuranceLevel) %>%
+    group_by(PGEZONG) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotFamAccidentPolicyLevel <- ggplot(data = ticDataTraining, aes(x = famAccidentInsuranceLevel)) +
+plotFamAccidentPolicyCont <- ggplot(data = ticDataTraining, aes(x = PGEZONG)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$famAccidentInsuranceLevel), 1)) +
-    xlab("No. of Family Accident Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PGEZONG), 1)) +
+    xlab("Family Accident Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -1080,16 +1058,16 @@ plotDisabilityPolicy <- ggplot(data = ticDataTraining, aes(x = AWAOREG)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(disabilityInsuranceLevel) %>%
+    group_by(PWAOREG) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotDisabilityPolicyLevel <- ggplot(data = ticDataTraining, aes(x = disabilityInsuranceLevel)) +
+plotDisabilityPolicyCont <- ggplot(data = ticDataTraining, aes(x = PWAOREG)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$disabilityInsuranceLevel), 1)) +
-    xlab("No. of Disability Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PWAOREG), 1)) +
+    xlab("Disability Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -1108,16 +1086,16 @@ plotFirePolicy <- ggplot(data = ticDataTraining, aes(x = ABRAND)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(fireInsuranceLevel) %>%
+    group_by(PBRAND) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotFirePolicyLevel <- ggplot(data = ticDataTraining, aes(x = fireInsuranceLevel)) +
+plotFirePolicyCont <- ggplot(data = ticDataTraining, aes(x = PBRAND)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$fireInsuranceLevel), 1)) +
-    xlab("No. of Fire Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PBRAND), 1)) +
+    xlab("Fire Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -1136,16 +1114,16 @@ plotSurfPolicy <- ggplot(data = ticDataTraining, aes(x = AZEILPL)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(surfInsuranceLevel) %>%
+    group_by(PZEILPL) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotSurfPolicyLevel <- ggplot(data = ticDataTraining, aes(x = surfInsuranceLevel)) +
+plotSurfPolicyCont <- ggplot(data = ticDataTraining, aes(x = PZEILPL)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$surfInsuranceLevel), 1)) +
-    xlab("No. of SurfBoard Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PZEILPL), 1)) +
+    xlab("SurfBoard Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -1164,16 +1142,16 @@ plotBoatPolicy <- ggplot(data = ticDataTraining, aes(x = APLEZIER)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(boatInsuranceLevel) %>%
+    group_by(PPLEZIER) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotBoatPolicyLevel <- ggplot(data = ticDataTraining, aes(x = boatInsuranceLevel)) +
+plotBoatPolicyCont <- ggplot(data = ticDataTraining, aes(x = PPLEZIER)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$boatInsuranceLevel), 1)) +
-    xlab("No. of Boat Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PPLEZIER), 1)) +
+    xlab("Boat Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -1192,16 +1170,16 @@ plotBicyclePolicy <- ggplot(data = ticDataTraining, aes(x = AFIETS)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(bikeInsuranceLevel) %>%
+    group_by(PFIETS) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotBicyclePolicyLevel <- ggplot(data = ticDataTraining, aes(x = bikeInsuranceLevel)) +
+plotBicyclePolicyCont <- ggplot(data = ticDataTraining, aes(x = PFIETS)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$bikeInsuranceLevel), 1)) +
-    xlab("No. of Bicycle Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PFIETS), 1)) +
+    xlab("Bicycle Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -1220,16 +1198,16 @@ plotPropertyPolicy <- ggplot(data = ticDataTraining, aes(x = AINBOED)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(propertyInsuranceLevel) %>%
+    group_by(PINBOED) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotPropertyPolicyLevel <- ggplot(data = ticDataTraining, aes(x = propertyInsuranceLevel)) +
+plotPropertyPolicyCont <- ggplot(data = ticDataTraining, aes(x = PINBOED)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$propertyInsuranceLevel), 1)) +
-    xlab("No. of Property Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PINBOED), 1)) +
+    xlab("Property Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 
@@ -1248,16 +1226,16 @@ plotSocialPolicy <- ggplot(data = ticDataTraining, aes(x = ABYSTAND)) +
     theme_bw()
 
 ticDataTraining <- ticDataTraining %>%
-    group_by(SocSecInsuranceLevel) %>%
+    group_by(PBYSTAND) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
     ungroup()
 
-plotSocialPolicyLevel <- ggplot(data = ticDataTraining, aes(x = SocSecInsuranceLevel)) +
+plotSocialPolicyCont <- ggplot(data = ticDataTraining, aes(x = PBYSTAND)) +
     geom_bar(aes(y = ..count../sum(..count..))) +
     geom_point(aes(y = percent_caravan)) +
     geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$SocSecInsuranceLevel), 1)) +
-    xlab("No. of Social Security Policies * Contributions") +
+    scale_x_continuous(breaks = seq(0, max(ticData$PBYSTAND), 1)) +
+    xlab("Social Security Policies Contributions") +
     ylab("Proportion") +
     theme_bw()
 ```
@@ -1273,15 +1251,15 @@ grid.arrange(plotHomesOwned, plotHouseHoldSize, PlotAvgAge, plotRomanCatholics, 
              plotSocialB1, plotSocialB2, plotSocialC, plotSocialD, plotRentHouse, plotOwnHome, plotOneCar, 
              plotTwoCars, plotNoCar, plotNHS, plotPHS, plotIncome30k, plotIncome30_45k, plotIncome45_75k, 
              plotIncome75k_122k, plotIncome123k, plotAvgIncome, plotPurchasingPower, plotNumThirdPartyIns,
-             plotNumThirdPartyInsLevel, plotNumThirdPartyInsFirm, plotNumThirdPartyInsFirmLevel, plotNumThirdPartyInsAgri,
-             plotNumThirdPartyInsAgriLevel, plotCarPolicy, plotCarPolicyLevel, plotVanPolicy, plotVanPolicyLevel,
-             plotScooterPolicy, plotScooterPolicyLevel, plotLorryPolicy, plotLorryPolicyLevel, plotTrailerPolicy,
-             plotTrailerPolicyLevel, plotTractorPolicy, plotTractorPolicyLevel, plotAgriMachinePolicy,
-             plotAgriMachinePolicyLevel, plotMopedPolicy, plotMopedPolicyLevel, plotLifePolicy, plotLifePolicyLevel,
-             plotPvtAccidentPolicy, plotPvtAccidentPolicyLevel, plotFamAccidentPolicy, plotFamAccidentPolicyLevel,
-             plotDisabilityPolicy, plotDisabilityPolicyLevel, plotFirePolicy, plotFirePolicyLevel, plotSurfPolicy,
-             plotSurfPolicyLevel, plotBoatPolicy, plotBoatPolicyLevel, plotBicyclePolicy, plotBicyclePolicyLevel,
-             plotPropertyPolicy, plotPropertyPolicyLevel, plotSocialPolicy, plotSocialPolicyLevel, ncol = 2)
+             plotNumThirdPartyInsCont, plotNumThirdPartyInsFirm, plotNumThirdPartyInsFirmCont, plotNumThirdPartyInsAgri,
+             plotNumThirdPartyInsAgriCont, plotCarPolicy, plotCarPolicyCont, plotVanPolicy, plotVanPolicyCont,
+             plotScooterPolicy, plotScooterPolicyCont, plotLorryPolicy, plotLorryPolicyCont, plotTrailerPolicy,
+             plotTrailerPolicyCont, plotTractorPolicy, plotTractorPolicyCont, plotAgriMachinePolicy,
+             plotAgriMachinePolicyCont, plotMopedPolicy, plotMopedPolicyCont, plotLifePolicy, plotLifePolicyCont,
+             plotPvtAccidentPolicy, plotPvtAccidentPolicyCont, plotFamAccidentPolicy, plotFamAccidentPolicyCont,
+             plotDisabilityPolicy, plotDisabilityPolicyCont, plotFirePolicy, plotFirePolicyCont, plotSurfPolicy,
+             plotSurfPolicyCont, plotBoatPolicy, plotBoatPolicyCont, plotBicyclePolicy, plotBicyclePolicyCont,
+             plotPropertyPolicy, plotPropertyPolicyCont, plotSocialPolicy, plotSocialPolicyCont, ncol = 2)
 ```
 
 ![](CapstoneProject_files/figure-html/unnamed-chunk-5-1.png)
@@ -1302,11 +1280,11 @@ From the plots the following conditions imply a higher proportion of caravan pol
 10. Zipcodes with average income households
 11. Zipcodes with high purchasing power >= 6
 12. Individuals that have a private third party insurance
-13. Individuals with contributions to third party insurance
+13. Individuals with high contributions to third party insurance
 14. Individuals with one or more car policy
-15. Individuals with contributions to their car policies
+15. Individuals with high contributions to their car policies
 16. Individuals with Fire Insurance Policy
-17. Individuals making contributions to fire insurance policies
+17. Individuals making high contributions to fire insurance policies
 
 The above factors are worth further investigation to draw more concrete trends
 
