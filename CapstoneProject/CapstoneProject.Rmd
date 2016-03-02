@@ -16,6 +16,7 @@ library(scales)
 library(reshape2)
 library(knitr)
 library(gridExtra)
+library(ROCR)
 ```
 
 ## Reading Data
@@ -1308,3 +1309,33 @@ ggplot(ticDataTraining, aes(x = ABRAND, y = PBRAND, color = as.factor(CARAVAN)))
     theme_bw() +
     scale_x_continuous(breaks =seq(0, max(ticData$ABRAND), 1))
 ```
+
+### Building a Logistic Regression Model
+
+```{r}
+ticDataLogitModel <- glm(data = ticDataTraining,
+                         CARAVAN ~ MOPLLAAG + MBERBOER + MHHUUR + MAUT1 +
+                             PWAPART + ABRAND + PPERSAUT + PBRAND,
+                         family = "binomial")
+
+summary(ticDataLogitModel)
+ticDataTrainingPrediction <- predict(ticDataLogitModel, type = "response")
+table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.06)
+ROCRpred = prediction(ticDataTrainingPrediction, ticDataTraining$CARAVAN)
+ROCRperf = performance(ROCRpred, "tpr", "fpr")
+plot(ROCRperf, colorize=TRUE)
+```
+
+Removing variables in order:
+
+1. MHKOOP
+2. MBERHOOG
+3. MINK3045
+4. APERSAUT
+5. MSKD
+6. MBERARBO
+7. MAUT2
+8. MBERARBG
+9. AWAPART
+10. MSKC
+11. MKOOPKLA

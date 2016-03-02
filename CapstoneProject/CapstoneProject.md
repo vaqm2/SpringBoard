@@ -12,6 +12,7 @@ library(scales)
 library(reshape2)
 library(knitr)
 library(gridExtra)
+library(ROCR)
 ```
 
 ## Reading Data
@@ -1325,3 +1326,83 @@ ggplot(ticDataTraining, aes(x = ABRAND, y = PBRAND, color = as.factor(CARAVAN)))
 ```
 
 ![](CapstoneProject_files/figure-html/unnamed-chunk-8-1.png)
+
+### Building a Logistic Regression Model
+
+
+```r
+ticDataLogitModel <- glm(data = ticDataTraining,
+                         CARAVAN ~ MOPLLAAG + MBERBOER + MHHUUR + MAUT1 +
+                             PWAPART + ABRAND + PPERSAUT + PBRAND,
+                         family = "binomial")
+
+summary(ticDataLogitModel)
+```
+
+```
+## 
+## Call:
+## glm(formula = CARAVAN ~ MOPLLAAG + MBERBOER + MHHUUR + MAUT1 + 
+##     PWAPART + ABRAND + PPERSAUT + PBRAND, family = "binomial", 
+##     data = ticDataTraining)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.9340  -0.3862  -0.2703  -0.1832   3.0489  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -3.74453    0.33165 -11.291  < 2e-16 ***
+## MOPLLAAG    -0.11245    0.02676  -4.201 2.65e-05 ***
+## MBERBOER    -0.26424    0.07742  -3.413 0.000642 ***
+## MHHUUR      -0.06414    0.02068  -3.102 0.001920 ** 
+## MAUT1        0.09413    0.03930   2.395 0.016605 *  
+## PWAPART      0.17981    0.07207   2.495 0.012596 *  
+## ABRAND      -0.42942    0.25462  -1.687 0.091697 .  
+## PPERSAUT     0.22144    0.02391   9.261  < 2e-16 ***
+## PBRAND       0.22064    0.06675   3.305 0.000949 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 2635.5  on 5821  degrees of freedom
+## Residual deviance: 2368.0  on 5813  degrees of freedom
+## AIC: 2386
+## 
+## Number of Fisher Scoring iterations: 6
+```
+
+```r
+ticDataTrainingPrediction <- predict(ticDataLogitModel, type = "response")
+table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.06)
+```
+
+```
+##    
+##     FALSE TRUE
+##   0  3649 1825
+##   1   106  242
+```
+
+```r
+ROCRpred = prediction(ticDataTrainingPrediction, ticDataTraining$CARAVAN)
+ROCRperf = performance(ROCRpred, "tpr", "fpr")
+plot(ROCRperf, colorize=TRUE)
+```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-9-1.png)
+
+Removing variables in order:
+
+1. MHKOOP
+2. MBERHOOG
+3. MINK3045
+4. APERSAUT
+5. MSKD
+6. MBERARBO
+7. MAUT2
+8. MBERARBG
+9. AWAPART
+10. MSKC
+11. MKOOPKLA
