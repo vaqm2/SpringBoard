@@ -17,6 +17,8 @@ library(reshape2)
 library(knitr)
 library(gridExtra)
 library(ROCR)
+library(e1071)
+library(brglm)
 ```
 
 ## Reading Data
@@ -72,7 +74,7 @@ Since the number of caravan policy holders within the training data is very low 
 its best to explore the assocaitions within the data by looking at the fraction of policy holders at each value 
 for the varaibles along with the proportion of population at that particular value
 
-```{r}
+```{r eval = FALSE}
 ticDataTraining <- ticDataTraining %>% 
     group_by(MAANTHUI) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
@@ -1238,7 +1240,7 @@ plotSocialPolicyCont <- ggplot(data = ticDataTraining, aes(x = PBYSTAND)) +
 
 #### Plotting Using Grid Arrange
 
-```{r, fig.width = 12, fig.height = 60}
+```{r eval = FALSE, fig.width = 12, fig.height = 60}
 grid.arrange(plotHomesOwned, plotHouseHoldSize, PlotAvgAge, plotRomanCatholics, plotProtestants, plotOtherReligion,
              plotNoReligion, plotMarried, plotLivingTogether, plotOtherRelation, plotSingles, plotHouseholdNoChild,
              plotHouseholdWithChild, plotHouseholdHighEd, plotHouseholdMidEd, plotHouseholdLowEd, plotHighStatus,
@@ -1313,29 +1315,42 @@ ggplot(ticDataTraining, aes(x = ABRAND, y = PBRAND, color = as.factor(CARAVAN)))
 ### Building a Logistic Regression Model
 
 ```{r}
-ticDataLogitModel <- glm(data = ticDataTraining,
-                         CARAVAN ~ MOPLLAAG + MBERBOER + MHHUUR + MAUT1 +
-                             PWAPART + ABRAND + PPERSAUT + PBRAND,
-                         family = "binomial")
+ticDataTraining$CARAVAN <- as.factor(ticDataTraining$CARAVAN)
+ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
+
+ticDataLogitModel <- brglm(data = ticDataTraining,
+                            CARAVAN ~ #(MGODGE < 3) + 
+#                             (MRELGE > 6) + 
+#                             (MFALLEEN < 2) + 
+#                             (MOPLHOOG > 3) +
+                             (MOPLLAAG < 4) +
+#                             (MBERHOOG > 3) +
+                             (MBERBOER == 0) +
+#                             (MBERARBG < 2) +
+#                             (MBERARBO < 2) +
+#                             (MSKC < 3) +
+#                             (MSKD == 0) +
+                             (MHHUUR < 2) +
+#                             (MHKOOP > 6) +
+#                             (MAUT1 > 7) +
+#                            (MAUT0 == 0) +
+#                             (MINKM30 < 3) +
+                             (MINKGEM > 3) +
+#                             (MKOOPKLA > 5) +
+#                             (AWAPART > 0) +
+                             (PWAPART > 1) +
+#                             (APERSAUT > 0) +
+                             (PPERSAUT > 5) +
+#                             (ABRAND > 0) +
+                             (PBRAND > 3) +
+                              (AFIETS + ABYSTAND),
+                             family = "binomial")
 
 summary(ticDataLogitModel)
 ticDataTrainingPrediction <- predict(ticDataLogitModel, type = "response")
-table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.06)
-ROCRpred = prediction(ticDataTrainingPrediction, ticDataTraining$CARAVAN)
-ROCRperf = performance(ROCRpred, "tpr", "fpr")
-plot(ROCRperf, colorize=TRUE)
+table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.15)
+
+ticDataTraining$Pred <- ticDataTrainingPrediction
+
+ggplot(ticDataTraining, aes(x = CARAVAN, y = Pred, fill = CARAVAN)) + geom_boxplot() + theme_bw() + ylab("Logit Probability")
 ```
-
-Removing variables in order:
-
-1. MHKOOP
-2. MBERHOOG
-3. MINK3045
-4. APERSAUT
-5. MSKD
-6. MBERARBO
-7. MAUT2
-8. MBERARBG
-9. AWAPART
-10. MSKC
-11. MKOOPKLA

@@ -13,6 +13,8 @@ library(reshape2)
 library(knitr)
 library(gridExtra)
 library(ROCR)
+library(e1071)
+library(brglm)
 ```
 
 ## Reading Data
@@ -1263,8 +1265,6 @@ grid.arrange(plotHomesOwned, plotHouseHoldSize, PlotAvgAge, plotRomanCatholics, 
              plotPropertyPolicy, plotPropertyPolicyCont, plotSocialPolicy, plotSocialPolicyCont, ncol = 2)
 ```
 
-![](CapstoneProject_files/figure-html/unnamed-chunk-5-1.png)
-
 #### Observations:
 
 From the plots the following conditions imply a higher proportion of caravan policy owners than expected:
@@ -1331,10 +1331,36 @@ ggplot(ticDataTraining, aes(x = ABRAND, y = PBRAND, color = as.factor(CARAVAN)))
 
 
 ```r
-ticDataLogitModel <- glm(data = ticDataTraining,
-                         CARAVAN ~ MOPLLAAG + MBERBOER + MHHUUR + MAUT1 +
-                             PWAPART + ABRAND + PPERSAUT + PBRAND,
-                         family = "binomial")
+ticDataTraining$CARAVAN <- as.factor(ticDataTraining$CARAVAN)
+ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
+
+ticDataLogitModel <- brglm(data = ticDataTraining,
+                            CARAVAN ~ #(MGODGE < 3) + 
+#                             (MRELGE > 6) + 
+#                             (MFALLEEN < 2) + 
+#                             (MOPLHOOG > 3) +
+                             (MOPLLAAG < 4) +
+#                             (MBERHOOG > 3) +
+                             (MBERBOER == 0) +
+#                             (MBERARBG < 2) +
+#                             (MBERARBO < 2) +
+#                             (MSKC < 3) +
+#                             (MSKD == 0) +
+                             (MHHUUR < 2) +
+#                             (MHKOOP > 6) +
+#                             (MAUT1 > 7) +
+#                            (MAUT0 == 0) +
+#                             (MINKM30 < 3) +
+                             (MINKGEM > 3) +
+#                             (MKOOPKLA > 5) +
+#                             (AWAPART > 0) +
+                             (PWAPART > 1) +
+#                             (APERSAUT > 0) +
+                             (PPERSAUT > 5) +
+#                             (ABRAND > 0) +
+                             (PBRAND > 3) +
+                              (AFIETS + ABYSTAND),
+                             family = "binomial")
 
 summary(ticDataLogitModel)
 ```
@@ -1342,67 +1368,51 @@ summary(ticDataLogitModel)
 ```
 ## 
 ## Call:
-## glm(formula = CARAVAN ~ MOPLLAAG + MBERBOER + MHHUUR + MAUT1 + 
-##     PWAPART + ABRAND + PPERSAUT + PBRAND, family = "binomial", 
+## brglm(formula = CARAVAN ~ (MOPLLAAG < 4) + (MBERBOER == 0) + 
+##     (MHHUUR < 2) + (MINKGEM > 3) + (PWAPART > 1) + (PPERSAUT > 
+##     5) + (PBRAND > 3) + (AFIETS + ABYSTAND), family = "binomial", 
 ##     data = ticDataTraining)
 ## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -0.9340  -0.3862  -0.2703  -0.1832   3.0489  
 ## 
 ## Coefficients:
-##             Estimate Std. Error z value Pr(>|z|)    
-## (Intercept) -3.74453    0.33165 -11.291  < 2e-16 ***
-## MOPLLAAG    -0.11245    0.02676  -4.201 2.65e-05 ***
-## MBERBOER    -0.26424    0.07742  -3.413 0.000642 ***
-## MHHUUR      -0.06414    0.02068  -3.102 0.001920 ** 
-## MAUT1        0.09413    0.03930   2.395 0.016605 *  
-## PWAPART      0.17981    0.07207   2.495 0.012596 *  
-## ABRAND      -0.42942    0.25462  -1.687 0.091697 .  
-## PPERSAUT     0.22144    0.02391   9.261  < 2e-16 ***
-## PBRAND       0.22064    0.06675   3.305 0.000949 ***
+##                   Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)        -4.8102     0.1861 -25.850  < 2e-16 ***
+## MOPLLAAG < 4TRUE    0.3249     0.1260   2.579 0.009906 ** 
+## MBERBOER == 0TRUE   0.4490     0.1494   3.005 0.002655 ** 
+## MHHUUR < 2TRUE      0.2473     0.1284   1.926 0.054144 .  
+## MINKGEM > 3TRUE     0.5996     0.1377   4.356 1.33e-05 ***
+## PWAPART > 1TRUE     0.3418     0.1278   2.675 0.007483 ** 
+## PPERSAUT > 5TRUE    1.3845     0.1308  10.581  < 2e-16 ***
+## PBRAND > 3TRUE      0.4400     0.1321   3.330 0.000867 ***
+## AFIETS              0.4653     0.1970   2.362 0.018159 *  
+## ABYSTAND            0.5839     0.2920   2.000 0.045489 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## (Dispersion parameter for binomial family taken to be 1)
 ## 
-##     Null deviance: 2635.5  on 5821  degrees of freedom
-## Residual deviance: 2368.0  on 5813  degrees of freedom
-## AIC: 2386
-## 
-## Number of Fisher Scoring iterations: 6
+##     Null deviance: 2589.3  on 5821  degrees of freedom
+## Residual deviance: 2324.7  on 5812  degrees of freedom
+## Penalized deviance: 2284.474 
+## AIC:  2344.7
 ```
 
 ```r
 ticDataTrainingPrediction <- predict(ticDataLogitModel, type = "response")
-table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.06)
+table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.15)
 ```
 
 ```
 ##    
 ##     FALSE TRUE
-##   0  3649 1825
-##   1   106  242
+##   0  5052  422
+##   1   237  111
 ```
 
 ```r
-ROCRpred = prediction(ticDataTrainingPrediction, ticDataTraining$CARAVAN)
-ROCRperf = performance(ROCRpred, "tpr", "fpr")
-plot(ROCRperf, colorize=TRUE)
+ticDataTraining$Pred <- ticDataTrainingPrediction
+
+ggplot(ticDataTraining, aes(x = CARAVAN, y = Pred, fill = CARAVAN)) + geom_boxplot() + theme_bw() + ylab("Logit Probability")
 ```
 
 ![](CapstoneProject_files/figure-html/unnamed-chunk-9-1.png)
-
-Removing variables in order:
-
-1. MHKOOP
-2. MBERHOOG
-3. MINK3045
-4. APERSAUT
-5. MSKD
-6. MBERARBO
-7. MAUT2
-8. MBERARBG
-9. AWAPART
-10. MSKC
-11. MKOOPKLA
