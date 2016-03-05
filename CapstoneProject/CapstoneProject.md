@@ -178,17 +178,18 @@ ticDataTraining$CARAVAN <- as.factor(ticDataTraining$CARAVAN)
 ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
 
 ticDataLogitModel <- glm(data = ticDataTraining, CARAVAN ~ 
-                             APERSAUT +
+                             (APERSAUT == 1 & PPERSAUT > 5) +
+#                             APERSAUT +
                              PPERSAUT +
-                             ABRAND +
+#                             ABRAND +
                              PBRAND +
-                             AWAPART +
+#                             AWAPART +
                              PWAPART +
-                             MKOOPKLA +
+                             (MKOOPKLA > 5) +
                              MOPLLAAG +
-                             MHKOOP +
-                             MHHUUR +
-                             MINKM30 +
+#                             MHKOOP +
+#                             MHHUUR +
+#                             MINKM30 +
 #                             MAUT0 +
                              MRELGE +
 #                             MBERARBO +
@@ -202,40 +203,35 @@ summary(ticDataLogitModel)
 ```
 ## 
 ## Call:
-## glm(formula = CARAVAN ~ APERSAUT + PPERSAUT + ABRAND + PBRAND + 
-##     AWAPART + PWAPART + MKOOPKLA + MOPLLAAG + MHKOOP + MHHUUR + 
-##     MINKM30 + MRELGE + MAUT1, family = binomial, data = ticDataTraining)
+## glm(formula = CARAVAN ~ (APERSAUT == 1 & PPERSAUT > 5) + PPERSAUT + 
+##     PBRAND + PWAPART + (MKOOPKLA > 5) + MOPLLAAG + MRELGE + MAUT1, 
+##     family = binomial, data = ticDataTraining)
 ## 
 ## Deviance Residuals: 
 ##     Min       1Q   Median       3Q      Max  
-## -0.9091  -0.3890  -0.2687  -0.1815   3.1793  
+## -0.9204  -0.3873  -0.2661  -0.1856   3.1332  
 ## 
 ## Coefficients:
-##               Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)  118.85665 2894.81441   0.041 0.967249    
-## APERSAUT       0.04993    0.16892   0.296 0.767525    
-## PPERSAUT       0.21377    0.04051   5.277 1.32e-07 ***
-## ABRAND        -0.25190    0.24949  -1.010 0.312663    
-## PBRAND         0.16191    0.06521   2.483 0.013027 *  
-## AWAPART       -0.95645    0.75961  -1.259 0.207981    
-## PWAPART        0.67934    0.38052   1.785 0.074213 .  
-## MKOOPKLA       0.06225    0.03520   1.768 0.077017 .  
-## MOPLLAAG      -0.10242    0.02944  -3.478 0.000504 ***
-## MHKOOP       -13.73058  321.64605  -0.043 0.965950    
-## MHHUUR       -13.74903  321.64605  -0.043 0.965904    
-## MINKM30       -0.02673    0.03804  -0.703 0.482253    
-## MRELGE         0.07666    0.03872   1.980 0.047717 *  
-## MAUT1          0.08442    0.04175   2.022 0.043146 *  
+##                                  Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)                      -4.82967    0.35113 -13.754  < 2e-16 ***
+## APERSAUT == 1 & PPERSAUT > 5TRUE  0.42744    0.17051   2.507  0.01218 *  
+## PPERSAUT                          0.16864    0.03395   4.967 6.79e-07 ***
+## PBRAND                            0.11181    0.03539   3.159  0.00158 ** 
+## PWAPART                           0.17379    0.06806   2.554  0.01066 *  
+## MKOOPKLA > 5TRUE                  0.31412    0.13492   2.328  0.01990 *  
+## MOPLLAAG                         -0.11205    0.02873  -3.900 9.63e-05 ***
+## MRELGE                            0.09949    0.03554   2.799  0.00512 ** 
+## MAUT1                             0.08292    0.04154   1.996  0.04591 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## (Dispersion parameter for binomial family taken to be 1)
 ## 
 ##     Null deviance: 2635.5  on 5821  degrees of freedom
-## Residual deviance: 2364.4  on 5808  degrees of freedom
-## AIC: 2392.4
+## Residual deviance: 2369.7  on 5813  degrees of freedom
+## AIC: 2387.7
 ## 
-## Number of Fisher Scoring iterations: 15
+## Number of Fisher Scoring iterations: 6
 ```
 
 ```r
@@ -252,21 +248,26 @@ anova(ticDataLogitModel, test="Chisq")
 ## Terms added sequentially (first to last)
 ## 
 ## 
-##          Df Deviance Resid. Df Resid. Dev  Pr(>Chi)    
-## NULL                      5821     2635.5              
-## APERSAUT  1  105.360      5820     2530.2 < 2.2e-16 ***
-## PPERSAUT  1   36.806      5819     2493.4 1.305e-09 ***
-## ABRAND    1   19.910      5818     2473.5 8.115e-06 ***
-## PBRAND    1   16.587      5817     2456.9 4.646e-05 ***
-## AWAPART   1    9.296      5816     2447.6  0.002297 ** 
-## PWAPART   1    5.165      5815     2442.4  0.023050 *  
-## MKOOPKLA  1   38.962      5814     2403.4 4.322e-10 ***
-## MOPLLAAG  1   15.882      5813     2387.6 6.741e-05 ***
-## MHKOOP    1    3.880      5812     2383.7  0.048862 *  
-## MHHUUR    1    5.352      5811     2378.3  0.020694 *  
-## MINKM30   1    2.885      5810     2375.4  0.089422 .  
-## MRELGE    1    6.952      5809     2368.5  0.008372 ** 
-## MAUT1     1    4.110      5808     2364.4  0.042642 *  
+##                              Df Deviance Resid. Df Resid. Dev  Pr(>Chi)
+## NULL                                          5821     2635.5          
+## APERSAUT == 1 & PPERSAUT > 5  1  120.075      5820     2515.5 < 2.2e-16
+## PPERSAUT                      1   28.775      5819     2486.7 8.130e-08
+## PBRAND                        1   34.821      5818     2451.9 3.615e-09
+## PWAPART                       1    8.368      5817     2443.5 0.0038183
+## MKOOPKLA > 5                  1   37.920      5816     2405.6 7.371e-10
+## MOPLLAAG                      1   17.650      5815     2387.9 2.655e-05
+## MRELGE                        1   14.212      5814     2373.7 0.0001633
+## MAUT1                         1    4.007      5813     2369.7 0.0453064
+##                                 
+## NULL                            
+## APERSAUT == 1 & PPERSAUT > 5 ***
+## PPERSAUT                     ***
+## PBRAND                       ***
+## PWAPART                      ** 
+## MKOOPKLA > 5                 ***
+## MOPLLAAG                     ***
+## MRELGE                       ***
+## MAUT1                        *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -277,8 +278,8 @@ summary(ticDataTrainingPrediction)
 ```
 
 ```
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## 0.00000 0.01916 0.03997 0.05977 0.08163 0.33850
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## 0.003632 0.020060 0.039580 0.059770 0.081620 0.345300
 ```
 
 ```r
@@ -288,8 +289,8 @@ table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.14)
 ```
 ##    
 ##     FALSE TRUE
-##   0  5042  432
-##   1   224  124
+##   0  5043  431
+##   1   234  114
 ```
 
 ```r
@@ -298,21 +299,21 @@ tapply(ticDataTrainingPrediction, ticDataTraining$CARAVAN, mean)
 
 ```
 ##          0          1 
-## 0.05641357 0.11262110
+## 0.05644395 0.11214319
 ```
 
 ```r
 ticDataTraining$Prediction <- ticDataTrainingPrediction
 
 ticDataTestPrediction <- predict(ticDataLogitModel, newdata = ticDataTest, type= "response")
-table(ticDataTest$CARAVAN, ticDataTestPrediction > 0.1)
+table(ticDataTest$CARAVAN, ticDataTestPrediction > 0.11)
 ```
 
 ```
 ##    
 ##     FALSE TRUE
-##   0  3162  600
-##   1   133  105
+##   0  3258  504
+##   1   140   98
 ```
 
 ```r
@@ -321,7 +322,7 @@ tapply(ticDataTestPrediction, ticDataTest$CARAVAN, mean)
 
 ```
 ##          0          1 
-## 0.05639077 0.10525544
+## 0.05660694 0.10534733
 ```
 
 ```r

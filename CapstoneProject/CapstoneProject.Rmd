@@ -1323,17 +1323,18 @@ ticDataTraining$CARAVAN <- as.factor(ticDataTraining$CARAVAN)
 ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
 
 ticDataLogitModel <- glm(data = ticDataTraining, CARAVAN ~ 
-                             APERSAUT +
+                             (APERSAUT == 1 & PPERSAUT > 5) +
+#                             APERSAUT +
                              PPERSAUT +
-                             ABRAND +
+#                             ABRAND +
                              PBRAND +
-                             AWAPART +
+#                             AWAPART +
                              PWAPART +
-                             MKOOPKLA +
+                             (MKOOPKLA > 5) +
                              MOPLLAAG +
-                             MHKOOP +
-                             MHHUUR +
-                             MINKM30 +
+#                             MHKOOP +
+#                             MHHUUR +
+#                             MINKM30 +
 #                             MAUT0 +
                              MRELGE +
 #                             MBERARBO +
@@ -1352,7 +1353,7 @@ tapply(ticDataTrainingPrediction, ticDataTraining$CARAVAN, mean)
 ticDataTraining$Prediction <- ticDataTrainingPrediction
 
 ticDataTestPrediction <- predict(ticDataLogitModel, newdata = ticDataTest, type= "response")
-table(ticDataTest$CARAVAN, ticDataTestPrediction > 0.1)
+table(ticDataTest$CARAVAN, ticDataTestPrediction > 0.11)
 tapply(ticDataTestPrediction, ticDataTest$CARAVAN, mean)
 
 ggplot(ticDataTraining, aes(x = CARAVAN, y = Prediction, fill = CARAVAN)) +
