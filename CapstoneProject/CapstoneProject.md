@@ -15,6 +15,7 @@ library(gridExtra)
 library(ROCR)
 library(e1071)
 library(brglm)
+library(logistf)
 ```
 
 ## Reading Data
@@ -44,6 +45,9 @@ ticDataTest <- read.table("ticeval2000.txt",
                           fill = NA, 
                           quote = "",
                           stringsAsFactors = FALSE)
+targets <- read.table("tictgts2000.txt",
+                              header = F,
+                              stringsAsFactors = FALSE)
 ```
 
 ## Data Cleaning
@@ -53,8 +57,8 @@ ticDataTest <- read.table("ticeval2000.txt",
 colNames <- variableInfo %>% select(Name) %>% unlist()
 names(ticDataTraining) <- colNames
 ticDataTraining$Set <- "Training"
-names(ticDataTest) <- colNames[1:85]
-ticDataTest$CARAVAN <- 0
+ticDataTest$CARAVAN <- targets$V1
+names(ticDataTest) <- colNames
 ticDataTest$Set <- "Test"
 ticData <- rbind(ticDataTraining, ticDataTest)
 ticData <- left_join(ticData, L0, by = c("MOSTYPE"= "Value"))
@@ -79,1169 +83,6 @@ its best to explore the assocaitions within the data by looking at the fraction 
 for the varaibles along with the proportion of population at that particular value
 
 
-```r
-ticDataTraining <- ticDataTraining %>% 
-    group_by(MAANTHUI) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotHomesOwned <- ggplot(data = ticDataTraining, aes(x = MAANTHUI)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MAANTHUI), 1)) +
-    xlab("Number of Homes Owned") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>% 
-    group_by(MGEMOMV) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotHouseHoldSize <- ggplot(data = ticDataTraining, aes(x = MGEMOMV)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MGEMOMV), 1)) +
-    xlab("Average Household Size") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>% 
-    group_by(MGEMLEEF) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-PlotAvgAge <- ggplot(data = ticDataTraining, aes(x = MGEMLEEF)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MGEMLEEF), 1)) +
-    xlab("Average Age") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>% 
-    group_by(MGODRK) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotRomanCatholics <- ggplot(data = ticDataTraining, aes(x = MGODRK)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MGODRK), 1)) +
-    xlab("Roman Catholics") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>% 
-    group_by(MGODPR) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotProtestants <- ggplot(data = ticDataTraining, aes(x = MGODPR)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MGODPR), 1)) +
-    xlab("Protestants") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>% 
-    group_by(MGODOV) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotOtherReligion <- ggplot(data = ticDataTraining, aes(x = MGODOV)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MGODOV), 1)) +
-    xlab("Other Religion") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MGODGE) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotNoReligion <- ggplot(data = ticDataTraining, aes(x = MGODGE)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MGODGE), 1)) +
-    xlab("No Religion") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MRELGE) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotMarried <- ggplot(data = ticDataTraining, aes(x = MRELGE)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MRELGE), 1)) +
-    xlab("Married") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MRELSA) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotLivingTogether <- ggplot(data = ticDataTraining, aes(x = MRELSA)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MRELSA), 1)) +
-    xlab("Living Together") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MRELOV) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotOtherRelation <- ggplot(data = ticDataTraining, aes(x = MRELOV)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MRELOV), 1)) +
-    xlab("Other Relation") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MFALLEEN) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotSingles <- ggplot(data = ticDataTraining, aes(x = MFALLEEN)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MFALLEEN), 1)) +
-    xlab("Singles") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MFGEKIND) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotHouseholdNoChild <- ggplot(data = ticDataTraining, aes(x = MFGEKIND)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MFGEKIND), 1)) +
-    xlab("Household No Children") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MFWEKIND) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotHouseholdWithChild <- ggplot(data = ticDataTraining, aes(x = MFWEKIND)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MFWEKIND), 1)) +
-    xlab("Household With Children") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MOPLHOOG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotHouseholdHighEd <- ggplot(data = ticDataTraining, aes(x = MOPLHOOG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MOPLHOOG), 1)) +
-    xlab("High Level Education") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MOPLMIDD) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotHouseholdMidEd <- ggplot(data = ticDataTraining, aes(x = MOPLMIDD)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MOPLMIDD), 1)) +
-    xlab("Mid Level Education") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MOPLLAAG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotHouseholdLowEd <- ggplot(data = ticDataTraining, aes(x = MOPLLAAG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MOPLLAAG), 1)) +
-    xlab("Low Level Education") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MBERHOOG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotHighStatus <- ggplot(data = ticDataTraining, aes(x = MBERHOOG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MBERHOOG), 1)) +
-    xlab("High Status") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MBERZELF) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotEntrepreneur <- ggplot(data = ticDataTraining, aes(x = MBERZELF)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MBERZELF), 1)) +
-    xlab("Entrepreneur") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MBERBOER) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotFarmer <- ggplot(data = ticDataTraining, aes(x = MBERBOER)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MBERBOER), 1)) +
-    xlab("Farmer") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MBERMIDD) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotMidManagement <- ggplot(data = ticDataTraining, aes(x = MBERMIDD)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MBERMIDD), 1)) +
-    xlab("Middle Management") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MBERARBG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotSkilledLabor <- ggplot(data = ticDataTraining, aes(x = MBERARBG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MBERARBG), 1)) +
-    xlab("Skilled Laborers") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MBERARBO) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotUnskilledLabor <- ggplot(data = ticDataTraining, aes(x = MBERARBO)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MBERARBO), 1)) +
-    xlab("Unskilled Laborers") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MSKA) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotSocialA <- ggplot(data = ticDataTraining, aes(x = MSKA)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MSKA), 1)) +
-    xlab("Social Class A") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MSKB1) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotSocialB1 <- ggplot(data = ticDataTraining, aes(x = MSKB1)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MSKB1), 1)) +
-    xlab("Social Class B1") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MSKB2) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotSocialB2 <- ggplot(data = ticDataTraining, aes(x = MSKB2)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MSKB2), 1)) +
-    xlab("Social Class B2") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MSKC) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotSocialC <- ggplot(data = ticDataTraining, aes(x = MSKC)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MSKC), 1)) +
-    xlab("Social Class C") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MSKD) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotSocialD <- ggplot(data = ticDataTraining, aes(x = MSKD)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MSKD), 1)) +
-    xlab("Social Class D") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MHHUUR) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotRentHouse <- ggplot(data = ticDataTraining, aes(x = MHHUUR)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MHHUUR), 1)) +
-    xlab("Rented House") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MHKOOP) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotOwnHome <- ggplot(data = ticDataTraining, aes(x = MHKOOP)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MHKOOP), 1)) +
-    xlab("Home Owners") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MAUT1) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotOneCar <- ggplot(data = ticDataTraining, aes(x = MAUT1)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MAUT1), 1)) +
-    xlab("Owns One Car") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MAUT2) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotTwoCars <- ggplot(data = ticDataTraining, aes(x = MAUT2)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MAUT2), 1)) +
-    xlab("Owns Two Cars") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MAUT0) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotNoCar <- ggplot(data = ticDataTraining, aes(x = MAUT0)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MAUT0), 1)) +
-    xlab("No Car Owned") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MZFONDS) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotNHS <- ggplot(data = ticDataTraining, aes(x = MZFONDS)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MZFONDS), 1)) +
-    xlab("National Health Service") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MZPART) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotPHS <- ggplot(data = ticDataTraining, aes(x = MZPART)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MZPART), 1)) +
-    xlab("Private Health Insurance") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MINKM30) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotIncome30k <- ggplot(data = ticDataTraining, aes(x = MINKM30)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MINKM30), 1)) +
-    xlab("Income < 30k") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MINK3045) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotIncome30_45k <- ggplot(data = ticDataTraining, aes(x = MINK3045)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MINK3045), 1)) +
-    xlab("30k < Income < 45k") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MINK4575) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotIncome45_75k <- ggplot(data = ticDataTraining, aes(x = MINK4575)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MINK4575), 1)) +
-    xlab("45k < Income < 75k") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MINK7512) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotIncome75k_122k <- ggplot(data = ticDataTraining, aes(x = MINK7512)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MINK7512), 1)) +
-    xlab("75k < Income < 122k") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MINK123M) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotIncome123k <- ggplot(data = ticDataTraining, aes(x = MINK123M)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MINK123M), 1)) +
-    xlab("Income > 122k") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MINKGEM) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotAvgIncome <- ggplot(data = ticDataTraining, aes(x = MINKGEM)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MINKGEM), 1)) +
-    xlab("Average Income Populations") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(MKOOPKLA) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotPurchasingPower <- ggplot(data = ticDataTraining, aes(x = MKOOPKLA)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$MKOOPKLA), 1)) +
-    xlab("Purchasing Power") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AWAPART) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotNumThirdPartyIns <- ggplot(data = ticDataTraining, aes(x = AWAPART)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AWAPART), 1)) +
-    xlab("No. of 3rd Party Insurances") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PWAPART) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotNumThirdPartyInsCont <- ggplot(data = ticDataTraining, aes(x = PWAPART)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PWAPART), 1)) +
-    xlab("3rd Party Insurance Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AWABEDR) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotNumThirdPartyInsFirm <- ggplot(data = ticDataTraining, aes(x = AWABEDR)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AWABEDR), 1)) +
-    xlab("No. of 3rd Party Insurances for FIRMS") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PWABEDR) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotNumThirdPartyInsFirmCont <- ggplot(data = ticDataTraining, aes(x = PWABEDR)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PWABEDR), 2)) +
-    xlab("3rd Party Insurance Contributions for Firms") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AWALAND) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotNumThirdPartyInsAgri <- ggplot(data = ticDataTraining, aes(x = AWALAND)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AWALAND), 1)) +
-    xlab("No. of 3rd Party Insurances for Agriculture") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PWALAND) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotNumThirdPartyInsAgriCont <- ggplot(data = ticDataTraining, aes(x = PWALAND)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PWALAND), 1)) +
-    xlab("3rd Party Insurance Contributions - Agriculture") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(APERSAUT) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotCarPolicy <- ggplot(data = ticDataTraining, aes(x = APERSAUT)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$APERSAUT), 1)) +
-    xlab("No. of Car Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PPERSAUT) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotCarPolicyCont <- ggplot(data = ticDataTraining, aes(x = PPERSAUT)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PPERSAUT), 4)) +
-    xlab("Car Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(ABESAUT) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotVanPolicy <- ggplot(data = ticDataTraining, aes(x = ABESAUT)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$ABESAUT), 1)) +
-    xlab("No. of Delivery Van Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PBESAUT) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotVanPolicyCont <- ggplot(data = ticDataTraining, aes(x = PBESAUT)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PBESAUT), 2)) +
-    xlab("Van Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AMOTSCO) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotScooterPolicy <- ggplot(data = ticDataTraining, aes(x = AMOTSCO)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AMOTSCO), 1)) +
-    xlab("No. of Scooter Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PMOTSCO) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotScooterPolicyCont <- ggplot(data = ticDataTraining, aes(x = PMOTSCO)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PMOTSCO), 4)) +
-    xlab("Scooter Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AVRAAUT) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotLorryPolicy <- ggplot(data = ticDataTraining, aes(x = AVRAAUT)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AVRAAUT), 1)) +
-    xlab("No. of Scooter Policies * Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PVRAAUT) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotLorryPolicyCont <- ggplot(data = ticDataTraining, aes(x = PVRAAUT)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PVRAAUT), 2)) +
-    xlab("Lorry Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AAANHANG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotTrailerPolicy <- ggplot(data = ticDataTraining, aes(x = AAANHANG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AAANHANG), 1)) +
-    xlab("No. of Trailer Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PAANHANG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotTrailerPolicyCont <- ggplot(data = ticDataTraining, aes(x = PAANHANG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PAANHANG), 1)) +
-    xlab("Trailer Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(ATRACTOR) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotTractorPolicy <- ggplot(data = ticDataTraining, aes(x = ATRACTOR)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$ATRACTOR), 1)) +
-    xlab("No. of Tractor Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PTRACTOR) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotTractorPolicyCont <- ggplot(data = ticDataTraining, aes(x = PTRACTOR)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PTRACTOR), 2)) +
-    xlab("Tractor Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AWERKT) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotAgriMachinePolicy <- ggplot(data = ticDataTraining, aes(x = AWERKT)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AWERKT), 1)) +
-    xlab("No. of Agricultural Machine Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PWERKT) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotAgriMachinePolicyCont <- ggplot(data = ticDataTraining, aes(x = PWERKT)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PWERKT), 2)) +
-    xlab("Agricultural Machine Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(ABROM) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotMopedPolicy <- ggplot(data = ticDataTraining, aes(x = ABROM)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$ABROM), 1)) +
-    xlab("No. of Moped Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PBROM) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotMopedPolicyCont <- ggplot(data = ticDataTraining, aes(x = PBROM)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PBROM), 1)) +
-    xlab("Moped Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(ALEVEN) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotLifePolicy <- ggplot(data = ticDataTraining, aes(x = ALEVEN)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$ALEVEN), 1)) +
-    xlab("No. of Life Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PLEVEN) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotLifePolicyCont <- ggplot(data = ticDataTraining, aes(x = PLEVEN)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 4) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PLEVEN), 4)) +
-    xlab("Life Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(APERSONG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotPvtAccidentPolicy <- ggplot(data = ticDataTraining, aes(x = APERSONG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$APERSONG), 1)) +
-    xlab("No. of Private Accident Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PPERSONG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotPvtAccidentPolicyCont <- ggplot(data = ticDataTraining, aes(x = PPERSONG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PPERSONG), 1)) +
-    xlab("Private Accident Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AGEZONG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotFamAccidentPolicy <- ggplot(data = ticDataTraining, aes(x = AGEZONG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AGEZONG), 1)) +
-    xlab("No. of Family Accident Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PGEZONG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotFamAccidentPolicyCont <- ggplot(data = ticDataTraining, aes(x = PGEZONG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PGEZONG), 1)) +
-    xlab("Family Accident Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AWAOREG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotDisabilityPolicy <- ggplot(data = ticDataTraining, aes(x = AWAOREG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AWAOREG), 1)) +
-    xlab("No. of Disability Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PWAOREG) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotDisabilityPolicyCont <- ggplot(data = ticDataTraining, aes(x = PWAOREG)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PWAOREG), 1)) +
-    xlab("Disability Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(ABRAND) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotFirePolicy <- ggplot(data = ticDataTraining, aes(x = ABRAND)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$ABRAND), 1)) +
-    xlab("No. of Fire Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PBRAND) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotFirePolicyCont <- ggplot(data = ticDataTraining, aes(x = PBRAND)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PBRAND), 1)) +
-    xlab("Fire Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AZEILPL) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotSurfPolicy <- ggplot(data = ticDataTraining, aes(x = AZEILPL)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AZEILPL), 1)) +
-    xlab("No. of SurfBoard Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PZEILPL) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotSurfPolicyCont <- ggplot(data = ticDataTraining, aes(x = PZEILPL)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PZEILPL), 1)) +
-    xlab("SurfBoard Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(APLEZIER) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotBoatPolicy <- ggplot(data = ticDataTraining, aes(x = APLEZIER)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$APLEZIER), 1)) +
-    xlab("No. of Boat Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PPLEZIER) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotBoatPolicyCont <- ggplot(data = ticDataTraining, aes(x = PPLEZIER)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PPLEZIER), 1)) +
-    xlab("Boat Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AFIETS) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotBicyclePolicy <- ggplot(data = ticDataTraining, aes(x = AFIETS)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AFIETS), 1)) +
-    xlab("No. of Bicycle Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PFIETS) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotBicyclePolicyCont <- ggplot(data = ticDataTraining, aes(x = PFIETS)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PFIETS), 1)) +
-    xlab("Bicycle Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(AINBOED) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotPropertyPolicy <- ggplot(data = ticDataTraining, aes(x = AINBOED)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$AINBOED), 1)) +
-    xlab("No. of Property Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PINBOED) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotPropertyPolicyCont <- ggplot(data = ticDataTraining, aes(x = PINBOED)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PINBOED), 1)) +
-    xlab("Property Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(ABYSTAND) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotSocialPolicy <- ggplot(data = ticDataTraining, aes(x = ABYSTAND)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$ABYSTAND), 1)) +
-    xlab("No. of Social Security Policies") +
-    ylab("Proportion") +
-    theme_bw()
-
-ticDataTraining <- ticDataTraining %>%
-    group_by(PBYSTAND) %>%
-    mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
-    ungroup()
-
-plotSocialPolicyCont <- ggplot(data = ticDataTraining, aes(x = PBYSTAND)) +
-    geom_bar(aes(y = ..count../sum(..count..))) +
-    geom_point(aes(y = percent_caravan)) +
-    geom_line(aes(y = percent_caravan), linetype = 2) +
-    scale_x_continuous(breaks = seq(0, max(ticData$PBYSTAND), 1)) +
-    xlab("Social Security Policies Contributions") +
-    ylab("Proportion") +
-    theme_bw()
-```
 
 #### Plotting Using Grid Arrange
 
@@ -1264,6 +105,8 @@ grid.arrange(plotHomesOwned, plotHouseHoldSize, PlotAvgAge, plotRomanCatholics, 
              plotSurfPolicyCont, plotBoatPolicy, plotBoatPolicyCont, plotBicyclePolicy, plotBicyclePolicyCont,
              plotPropertyPolicy, plotPropertyPolicyCont, plotSocialPolicy, plotSocialPolicyCont, ncol = 2)
 ```
+
+![](CapstoneProject_files/figure-html/unnamed-chunk-5-1.png)
 
 #### Observations:
 
@@ -1334,33 +177,24 @@ ggplot(ticDataTraining, aes(x = ABRAND, y = PBRAND, color = as.factor(CARAVAN)))
 ticDataTraining$CARAVAN <- as.factor(ticDataTraining$CARAVAN)
 ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
 
-ticDataLogitModel <- brglm(data = ticDataTraining,
-                            CARAVAN ~ #(MGODGE < 3) + 
-#                             (MRELGE > 6) + 
-#                             (MFALLEEN < 2) + 
-#                             (MOPLHOOG > 3) +
-                             (MOPLLAAG < 4) +
-#                             (MBERHOOG > 3) +
-                             (MBERBOER == 0) +
-#                             (MBERARBG < 2) +
-#                             (MBERARBO < 2) +
-#                             (MSKC < 3) +
-#                             (MSKD == 0) +
-                             (MHHUUR < 2) +
-#                             (MHKOOP > 6) +
-#                             (MAUT1 > 7) +
-#                            (MAUT0 == 0) +
-#                             (MINKM30 < 3) +
-                             (MINKGEM > 3) +
-#                             (MKOOPKLA > 5) +
-#                             (AWAPART > 0) +
-                             (PWAPART > 1) +
-#                             (APERSAUT > 0) +
-                             (PPERSAUT > 5) +
-#                             (ABRAND > 0) +
-                             (PBRAND > 3) +
-                              (AFIETS + ABYSTAND),
-                             family = "binomial")
+ticDataLogitModel <- glm(data = ticDataTraining, CARAVAN ~ 
+                             APERSAUT +
+                             PPERSAUT +
+                             ABRAND +
+                             PBRAND +
+                             AWAPART +
+                             PWAPART +
+                             MKOOPKLA +
+                             MOPLLAAG +
+                             MHKOOP +
+                             MHHUUR +
+                             MINKM30 +
+#                             MAUT0 +
+                             MRELGE +
+#                             MBERARBO +
+#                             MFALLEEN +
+                             MAUT1,
+                         family = binomial)
 
 summary(ticDataLogitModel)
 ```
@@ -1368,51 +202,133 @@ summary(ticDataLogitModel)
 ```
 ## 
 ## Call:
-## brglm(formula = CARAVAN ~ (MOPLLAAG < 4) + (MBERBOER == 0) + 
-##     (MHHUUR < 2) + (MINKGEM > 3) + (PWAPART > 1) + (PPERSAUT > 
-##     5) + (PBRAND > 3) + (AFIETS + ABYSTAND), family = "binomial", 
-##     data = ticDataTraining)
+## glm(formula = CARAVAN ~ APERSAUT + PPERSAUT + ABRAND + PBRAND + 
+##     AWAPART + PWAPART + MKOOPKLA + MOPLLAAG + MHKOOP + MHHUUR + 
+##     MINKM30 + MRELGE + MAUT1, family = binomial, data = ticDataTraining)
 ## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.9091  -0.3890  -0.2687  -0.1815   3.1793  
 ## 
 ## Coefficients:
-##                   Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)        -4.8102     0.1861 -25.850  < 2e-16 ***
-## MOPLLAAG < 4TRUE    0.3249     0.1260   2.579 0.009906 ** 
-## MBERBOER == 0TRUE   0.4490     0.1494   3.005 0.002655 ** 
-## MHHUUR < 2TRUE      0.2473     0.1284   1.926 0.054144 .  
-## MINKGEM > 3TRUE     0.5996     0.1377   4.356 1.33e-05 ***
-## PWAPART > 1TRUE     0.3418     0.1278   2.675 0.007483 ** 
-## PPERSAUT > 5TRUE    1.3845     0.1308  10.581  < 2e-16 ***
-## PBRAND > 3TRUE      0.4400     0.1321   3.330 0.000867 ***
-## AFIETS              0.4653     0.1970   2.362 0.018159 *  
-## ABYSTAND            0.5839     0.2920   2.000 0.045489 *  
+##               Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)  118.85665 2894.81441   0.041 0.967249    
+## APERSAUT       0.04993    0.16892   0.296 0.767525    
+## PPERSAUT       0.21377    0.04051   5.277 1.32e-07 ***
+## ABRAND        -0.25190    0.24949  -1.010 0.312663    
+## PBRAND         0.16191    0.06521   2.483 0.013027 *  
+## AWAPART       -0.95645    0.75961  -1.259 0.207981    
+## PWAPART        0.67934    0.38052   1.785 0.074213 .  
+## MKOOPKLA       0.06225    0.03520   1.768 0.077017 .  
+## MOPLLAAG      -0.10242    0.02944  -3.478 0.000504 ***
+## MHKOOP       -13.73058  321.64605  -0.043 0.965950    
+## MHHUUR       -13.74903  321.64605  -0.043 0.965904    
+## MINKM30       -0.02673    0.03804  -0.703 0.482253    
+## MRELGE         0.07666    0.03872   1.980 0.047717 *  
+## MAUT1          0.08442    0.04175   2.022 0.043146 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## (Dispersion parameter for binomial family taken to be 1)
 ## 
-##     Null deviance: 2589.3  on 5821  degrees of freedom
-## Residual deviance: 2324.7  on 5812  degrees of freedom
-## Penalized deviance: 2284.474 
-## AIC:  2344.7
+##     Null deviance: 2635.5  on 5821  degrees of freedom
+## Residual deviance: 2364.4  on 5808  degrees of freedom
+## AIC: 2392.4
+## 
+## Number of Fisher Scoring iterations: 15
+```
+
+```r
+anova(ticDataLogitModel, test="Chisq")
+```
+
+```
+## Analysis of Deviance Table
+## 
+## Model: binomial, link: logit
+## 
+## Response: CARAVAN
+## 
+## Terms added sequentially (first to last)
+## 
+## 
+##          Df Deviance Resid. Df Resid. Dev  Pr(>Chi)    
+## NULL                      5821     2635.5              
+## APERSAUT  1  105.360      5820     2530.2 < 2.2e-16 ***
+## PPERSAUT  1   36.806      5819     2493.4 1.305e-09 ***
+## ABRAND    1   19.910      5818     2473.5 8.115e-06 ***
+## PBRAND    1   16.587      5817     2456.9 4.646e-05 ***
+## AWAPART   1    9.296      5816     2447.6  0.002297 ** 
+## PWAPART   1    5.165      5815     2442.4  0.023050 *  
+## MKOOPKLA  1   38.962      5814     2403.4 4.322e-10 ***
+## MOPLLAAG  1   15.882      5813     2387.6 6.741e-05 ***
+## MHKOOP    1    3.880      5812     2383.7  0.048862 *  
+## MHHUUR    1    5.352      5811     2378.3  0.020694 *  
+## MINKM30   1    2.885      5810     2375.4  0.089422 .  
+## MRELGE    1    6.952      5809     2368.5  0.008372 ** 
+## MAUT1     1    4.110      5808     2364.4  0.042642 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 ```r
 ticDataTrainingPrediction <- predict(ticDataLogitModel, type = "response")
-table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.15)
+summary(ticDataTrainingPrediction)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## 0.00000 0.01916 0.03997 0.05977 0.08163 0.33850
+```
+
+```r
+table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.14)
 ```
 
 ```
 ##    
 ##     FALSE TRUE
-##   0  5052  422
-##   1   237  111
+##   0  5042  432
+##   1   224  124
 ```
 
 ```r
-ticDataTraining$Pred <- ticDataTrainingPrediction
+tapply(ticDataTrainingPrediction, ticDataTraining$CARAVAN, mean)
+```
 
-ggplot(ticDataTraining, aes(x = CARAVAN, y = Pred, fill = CARAVAN)) + geom_boxplot() + theme_bw() + ylab("Logit Probability")
+```
+##          0          1 
+## 0.05641357 0.11262110
+```
+
+```r
+ticDataTraining$Prediction <- ticDataTrainingPrediction
+
+ticDataTestPrediction <- predict(ticDataLogitModel, newdata = ticDataTest, type= "response")
+table(ticDataTest$CARAVAN, ticDataTestPrediction > 0.1)
+```
+
+```
+##    
+##     FALSE TRUE
+##   0  3162  600
+##   1   133  105
+```
+
+```r
+tapply(ticDataTestPrediction, ticDataTest$CARAVAN, mean)
+```
+
+```
+##          0          1 
+## 0.05639077 0.10525544
+```
+
+```r
+ggplot(ticDataTraining, aes(x = CARAVAN, y = Prediction, fill = CARAVAN)) +
+    geom_boxplot() +
+    scale_y_continuous(breaks = seq(0,1,0.05)) +
+    theme_bw()
 ```
 
 ![](CapstoneProject_files/figure-html/unnamed-chunk-9-1.png)
