@@ -12,14 +12,16 @@ output:
 ```{r, message = FALSE}
 library(dplyr)
 library(ggplot2)
-library(scales)
-library(reshape2)
 library(knitr)
 library(gridExtra)
-library(ROCR)
+library(pROC)
+library(leaps)
+library(MASS)
 library(e1071)
-library(brglm)
-library(logistf)
+library(mlbench)
+library(caret)
+library(randomForest)
+library(C50)
 ```
 
 ## Reading Data
@@ -56,10 +58,10 @@ targets <- read.table("tictgts2000.txt",
 ## Data Cleaning
 
 ```{r}
-colNames <- variableInfo %>% select(Name) %>% unlist()
+colNames <- as.vector(variableInfo$Name)
 names(ticDataTraining) <- colNames
 ticDataTraining$Set <- "Training"
-ticDataTest$CARAVAN <- targets$V1
+ticDataTest <- cbind(ticDataTest, targets)
 names(ticDataTest) <- colNames
 ticDataTest$Set <- "Test"
 ticData <- rbind(ticDataTraining, ticDataTest)
@@ -1244,7 +1246,7 @@ plotSocialPolicyCont <- ggplot(data = ticDataTraining, aes(x = PBYSTAND)) +
 
 #### Plotting Using Grid Arrange
 
-```{r, fig.width = 12, fig.height = 60}
+```{r eval = FALSE, fig.width = 12, fig.height = 60}
 grid.arrange(plotHomesOwned, plotHouseHoldSize, PlotAvgAge, plotRomanCatholics, plotProtestants, plotOtherReligion,
              plotNoReligion, plotMarried, plotLivingTogether, plotOtherRelation, plotSingles, plotHouseholdNoChild,
              plotHouseholdWithChild, plotHouseholdHighEd, plotHouseholdMidEd, plotHouseholdLowEd, plotHighStatus,
@@ -1316,6 +1318,53 @@ ggplot(ticDataTraining, aes(x = ABRAND, y = PBRAND, color = as.factor(CARAVAN)))
     scale_x_continuous(breaks =seq(0, max(ticData$ABRAND), 1))
 ```
 
+### Automatic Variable Selection, Forward and Backward
+
+```{r}
+ticDataTraining$CARAVAN <- as.factor(ticDataTraining$CARAVAN)
+ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
+ticDataTraining <- ticDataTraining[,1:86]
+str(ticDataTraining)
+reg_Backward <- regsubsets(CARAVAN ~., data = ticDataTraining, method = "backward")
+summary(reg_Backward)
+reg_Forward <- regsubsets(CARAVAN ~., data = ticDataTraining, method = "forward")
+summary(reg_Forward)
+```
+
+### Naive Bayes Classifier
+
+```{r}
+ticDataTraining.NB <- naiveBayes(data = ticDataTraining, CARAVAN ~ MOSTYPE + APERSAUT + PPERSAUT +
+                                     PBRAND + MKOOPKLA)
+ticDataTraining.NB$apriori
+nb_prediction <- predict(ticDataTraining.NB, ticDataTraining)
+summary(nb_prediction)
+table(pred = nb_prediction, ticDataTraining$CARAVAN)
+```
+### Random Forest Classifier
+
+```{r, fig.width = 12, fig.height = 10}
+ticDataTraining.RF <- randomForest(CARAVAN ~ ., 
+                                   data = ticDataTraining, 
+                                   nTree = 100,
+                                   importance = TRUE)
+
+varImpPlot(ticDataTraining.RF)
+
+trainingPredictions <- data.frame(predict(ticDataTraining.RF, ticDataTraining, type = "prob"))
+ticDataTraining <- cbind(ticDataTraining, trainingPredictions)
+
+ticDataTest <- ticDataTest[, !(colnames(ticDataTest) %in% c("Set"))]
+testPredictions <- data.frame(predict(ticDataTraining.RF, newdata = ticDataTest, type = "prob"))
+
+ticDataTest <- cbind(ticDataTest, testPredictions)
+
+ggplot(ticDataTraining, aes(x = CARAVAN, y = X0, color = CARAVAN)) + geom_boxplot() + theme_bw()
+ggplot(ticDataTraining, aes(x = CARAVAN, y = X1, color = CARAVAN)) + geom_boxplot() + theme_bw()
+ggplot(ticDataTest, aes(x = CARAVAN, y = X0, color = CARAVAN)) + geom_boxplot() + theme_bw()
+ggplot(ticDataTest, aes(x = CARAVAN, y = X1, color = CARAVAN)) + geom_boxplot() + theme_bw()
+```
+
 ### Building a Logistic Regression Model
 
 ```{r}
@@ -1323,23 +1372,16 @@ ticDataTraining$CARAVAN <- as.factor(ticDataTraining$CARAVAN)
 ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
 
 ticDataLogitModel <- glm(data = ticDataTraining, CARAVAN ~ 
-                             (APERSAUT == 1 & PPERSAUT > 5) +
-#                             APERSAUT +
-                             PPERSAUT +
-#                             ABRAND +
-                             PBRAND +
-#                             AWAPART +
-                             PWAPART +
-                             (MKOOPKLA > 5) +
-                             MOPLLAAG +
-#                             MHKOOP +
-#                             MHHUUR +
-#                             MINKM30 +
-#                             MAUT0 +
                              MRELGE +
-#                             MBERARBO +
-#                             MFALLEEN +
-                             MAUT1,
+                             MOPLLAAG +
+                             MBERBOER +
+                             MKOOPKLA +
+                             PWALAND +
+                             PWAPART +
+                             PPERSAUT +
+                             PBRAND +
+                             APLEZIER +
+                             ABYSTAND,
                          family = binomial)
 
 summary(ticDataLogitModel)
@@ -1351,13 +1393,44 @@ table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.14)
 tapply(ticDataTrainingPrediction, ticDataTraining$CARAVAN, mean)
 
 ticDataTraining$Prediction <- ticDataTrainingPrediction
+ROC_Plot <- roc(CARAVAN ~ Prediction, data = ticDataTraining)
+plot(ROC_Plot)
+auc(ticDataTraining$CARAVAN, ticDataTraining$Prediction)
 
-ticDataTestPrediction <- predict(ticDataLogitModel, newdata = ticDataTest, type= "response")
+ticDataTestPrediction <- predict(ticDataLogitModel, newdata = ticDataTest, type = "response")
 table(ticDataTest$CARAVAN, ticDataTestPrediction > 0.11)
 tapply(ticDataTestPrediction, ticDataTest$CARAVAN, mean)
+```
 
-ggplot(ticDataTraining, aes(x = CARAVAN, y = Prediction, fill = CARAVAN)) +
-    geom_boxplot() +
-    scale_y_continuous(breaks = seq(0,1,0.05)) +
-    theme_bw()
+### Logit Model 2 Using Var importance table from Random Forest Classifier
+
+```{r}
+ticDataTraining$CARAVAN <- as.factor(ticDataTraining$CARAVAN)
+ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
+
+ticDataLogitModel <- glm(data = ticDataTraining, CARAVAN ~ 
+ #                            MOSTYPE +
+                             MKOOPKLA +
+     PBRAND +
+ #                            APERSAUT +
+                             PWAPART +
+                             PPERSAUT,
+                         family = binomial)
+
+summary(ticDataLogitModel)
+anova(ticDataLogitModel, test="Chisq")
+
+ticDataTrainingPrediction <- predict(ticDataLogitModel, type = "response")
+summary(ticDataTrainingPrediction)
+table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.14)
+tapply(ticDataTrainingPrediction, ticDataTraining$CARAVAN, mean)
+
+ticDataTraining$Prediction <- ticDataTrainingPrediction
+ROC_Plot <- roc(CARAVAN ~ Prediction, data = ticDataTraining)
+plot(ROC_Plot)
+auc(ticDataTraining$CARAVAN, ticDataTraining$Prediction)
+
+ticDataTestPrediction <- predict(ticDataLogitModel, newdata = ticDataTest, type = "response")
+table(ticDataTest$CARAVAN, ticDataTestPrediction > 0.11)
+tapply(ticDataTestPrediction, ticDataTest$CARAVAN, mean)
 ```
