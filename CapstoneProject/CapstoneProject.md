@@ -17,7 +17,8 @@ library(e1071)
 library(mlbench)
 library(caret)
 library(randomForest)
-library(C50)
+library(rpart)
+library(ROCR)
 ```
 
 ## Reading Data
@@ -30,23 +31,21 @@ variableInfo <- read.table("Names.txt",
                            fill = NA, 
                            quote = "",
                            stringsAsFactors = FALSE)
-L0 <- read.table("L0.txt", header = T, sep = "\t", fill = NA, quote = "")
-L1 <- read.table("L1.txt", header = F, sep = "\t", fill = NA, quote = "")
-L2 <- read.table("L2.txt", header = F, sep = "\t", fill = NA, quote = "")
-L3 <- read.table("L3.txt", header = F, sep = "\t", fill = NA, quote = "")
-L4 <- read.table("L4.txt", header = F, sep = "\t", fill = NA, quote = "")
+
 ticDataTraining <- read.table("ticdata2000.txt", 
                               header = F, 
                               sep = "\t", 
                               fill = NA, 
                               quote = "", 
                               stringsAsFactors = FALSE)
+
 ticDataTest <- read.table("ticeval2000.txt", 
                           header = F, 
                           sep = "\t", 
                           fill = NA, 
                           quote = "",
                           stringsAsFactors = FALSE)
+
 targets <- read.table("tictgts2000.txt",
                               header = F,
                               stringsAsFactors = FALSE)
@@ -58,23 +57,9 @@ targets <- read.table("tictgts2000.txt",
 ```r
 colNames <- as.vector(variableInfo$Name)
 names(ticDataTraining) <- colNames
-ticDataTraining$Set <- "Training"
 ticDataTest <- cbind(ticDataTest, targets)
 names(ticDataTest) <- colNames
-ticDataTest$Set <- "Test"
-ticData <- rbind(ticDataTraining, ticDataTest)
-ticData <- left_join(ticData, L0, by = c("MOSTYPE"= "Value"))
-ticData <- ticData %>% rename(MOSTYPE2 = Label)
-names(L2) <- c("MOSHOOFD","MOSHOOFD2")
-ticData <- left_join(ticData, L2)
-```
 
-```
-## Joining by: "MOSHOOFD"
-```
-
-```r
-ticDataTraining <- ticData %>% filter(Set == "Training")
 ticDataTraining <- ticDataTraining %>% mutate(totalCaravanPolicies = sum(CARAVAN))
 ```
 
@@ -139,7 +124,7 @@ ggplot(ticDataTraining, aes(x = APERSAUT, y = PPERSAUT, color = as.factor(CARAVA
     xlab("Num. Car Policies") +
     ylab("Contributions") +
     theme_bw() +
-    scale_x_continuous(breaks =seq(0, max(ticData$APERSAUT), 1))
+    scale_x_continuous(breaks =seq(0, max(ticDataTraining$APERSAUT), 1))
 ```
 
 ![](CapstoneProject_files/figure-html/unnamed-chunk-6-1.png)
@@ -153,7 +138,7 @@ ggplot(ticDataTraining, aes(x = AWAPART, y = PWAPART, color = as.factor(CARAVAN)
     xlab("Private Third Party Insurance") +
     ylab("Contributions") +
     theme_bw() +
-    scale_x_continuous(breaks =seq(0, max(ticData$AWAPART), 1))
+    scale_x_continuous(breaks =seq(0, max(ticDataTraining$AWAPART), 1))
 ```
 
 ![](CapstoneProject_files/figure-html/unnamed-chunk-7-1.png)
@@ -165,7 +150,7 @@ ggplot(ticDataTraining, aes(x = ABRAND, y = PBRAND, color = as.factor(CARAVAN)))
     xlab("Num. Fire Policies") +
     ylab("Contributions") +
     theme_bw() +
-    scale_x_continuous(breaks =seq(0, max(ticData$ABRAND), 1))
+    scale_x_continuous(breaks =seq(0, max(ticDataTraining$ABRAND), 1))
 ```
 
 ![](CapstoneProject_files/figure-html/unnamed-chunk-8-1.png)
@@ -174,587 +159,186 @@ ggplot(ticDataTraining, aes(x = ABRAND, y = PBRAND, color = as.factor(CARAVAN)))
 
 
 ```r
+ticDataTraining <- ticDataTraining[,1:86]
+ticDataTraining$MOSTYPE <- as.factor(ticDataTraining$MOSTYPE)
+ticDataTest$MOSTYPE <- as.factor(ticDataTest$MOSTYPE)
+ticDataTraining$MOSHOOFD <- as.factor(ticDataTraining$MOSHOOFD)
+ticDataTest$MOSHOOFD <- as.factor(ticDataTest$MOSHOOFD)
 ticDataTraining$CARAVAN <- as.factor(ticDataTraining$CARAVAN)
 ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
-ticDataTraining <- ticDataTraining[,1:86]
-str(ticDataTraining)
-```
 
-```
-## Classes 'tbl_df' and 'data.frame':	5822 obs. of  86 variables:
-##  $ MOSTYPE : int  33 37 37 9 40 23 39 33 33 11 ...
-##  $ MAANTHUI: int  1 1 1 1 1 1 2 1 1 2 ...
-##  $ MGEMOMV : int  3 2 2 3 4 2 3 2 2 3 ...
-##  $ MGEMLEEF: int  2 2 2 3 2 1 2 3 4 3 ...
-##  $ MOSHOOFD: int  8 8 8 3 10 5 9 8 8 3 ...
-##  $ MGODRK  : int  0 1 0 2 1 0 2 0 0 3 ...
-##  $ MGODPR  : int  5 4 4 3 4 5 2 7 1 5 ...
-##  $ MGODOV  : int  1 1 2 2 1 0 0 0 3 0 ...
-##  $ MGODGE  : int  3 4 4 4 4 5 5 2 6 2 ...
-##  $ MRELGE  : int  7 6 3 5 7 0 7 7 6 7 ...
-##  $ MRELSA  : int  0 2 2 2 1 6 2 2 0 0 ...
-##  $ MRELOV  : int  2 2 4 2 2 3 0 0 3 2 ...
-##  $ MFALLEEN: int  1 0 4 2 2 3 0 0 3 2 ...
-##  $ MFGEKIND: int  2 4 4 3 4 5 3 5 3 2 ...
-##  $ MFWEKIND: int  6 5 2 4 4 2 6 4 3 6 ...
-##  $ MOPLHOOG: int  1 0 0 3 5 0 0 0 0 0 ...
-##  $ MOPLMIDD: int  2 5 5 4 4 5 4 3 1 4 ...
-##  $ MOPLLAAG: int  7 4 4 2 0 4 5 6 8 5 ...
-##  $ MBERHOOG: int  1 0 0 4 0 2 0 2 1 2 ...
-##  $ MBERZELF: int  0 0 0 0 5 0 0 0 1 0 ...
-##  $ MBERBOER: int  1 0 0 0 4 0 0 0 0 0 ...
-##  $ MBERMIDD: int  2 5 7 3 0 4 4 2 1 3 ...
-##  $ MBERARBG: int  5 0 0 1 0 2 1 5 8 3 ...
-##  $ MBERARBO: int  2 4 2 2 0 2 5 2 1 3 ...
-##  $ MSKA    : int  1 0 0 3 9 2 0 2 1 1 ...
-##  $ MSKB1   : int  1 2 5 2 0 2 1 1 1 2 ...
-##  $ MSKB2   : int  2 3 0 1 0 2 4 2 0 1 ...
-##  $ MSKC    : int  6 5 4 4 0 4 5 5 8 4 ...
-##  $ MSKD    : int  1 0 0 0 0 2 0 2 1 2 ...
-##  $ MHHUUR  : int  1 2 7 5 4 9 6 0 9 0 ...
-##  $ MHKOOP  : int  8 7 2 4 5 0 3 9 0 9 ...
-##  $ MAUT1   : int  8 7 7 9 6 5 8 4 5 6 ...
-##  $ MAUT2   : int  0 1 0 0 2 3 0 4 2 1 ...
-##  $ MAUT0   : int  1 2 2 0 1 3 1 2 3 2 ...
-##  $ MZFONDS : int  8 6 9 7 5 9 9 6 7 6 ...
-##  $ MZPART  : int  1 3 0 2 4 0 0 3 2 3 ...
-##  $ MINKM30 : int  0 2 4 1 0 5 4 2 7 2 ...
-##  $ MINK3045: int  4 0 5 5 0 2 3 5 2 3 ...
-##  $ MINK4575: int  5 5 0 3 9 3 3 3 1 3 ...
-##  $ MINK7512: int  0 2 0 0 0 0 0 0 0 1 ...
-##  $ MINK123M: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ MINKGEM : int  4 5 3 4 6 3 3 3 2 4 ...
-##  $ MKOOPKLA: int  3 4 4 4 3 3 5 3 3 7 ...
-##  $ PWAPART : int  0 2 2 0 0 0 0 0 0 2 ...
-##  $ PWABEDR : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PWALAND : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PPERSAUT: int  6 0 6 6 0 6 6 0 5 0 ...
-##  $ PBESAUT : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PMOTSCO : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PVRAAUT : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PAANHANG: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PTRACTOR: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PWERKT  : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PBROM   : int  0 0 0 0 0 0 0 3 0 0 ...
-##  $ PLEVEN  : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PPERSONG: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PGEZONG : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PWAOREG : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PBRAND  : int  5 2 2 2 6 0 0 0 0 3 ...
-##  $ PZEILPL : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PPLEZIER: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PFIETS  : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PINBOED : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ PBYSTAND: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ AWAPART : int  0 2 1 0 0 0 0 0 0 1 ...
-##  $ AWABEDR : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ AWALAND : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ APERSAUT: int  1 0 1 1 0 1 1 0 1 0 ...
-##  $ ABESAUT : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ AMOTSCO : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ AVRAAUT : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ AAANHANG: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ ATRACTOR: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ AWERKT  : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ ABROM   : int  0 0 0 0 0 0 0 1 0 0 ...
-##  $ ALEVEN  : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ APERSONG: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ AGEZONG : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ AWAOREG : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ ABRAND  : int  1 1 1 1 1 0 0 0 0 1 ...
-##  $ AZEILPL : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ APLEZIER: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ AFIETS  : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ AINBOED : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ ABYSTAND: int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ CARAVAN : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 1 1 1 ...
-```
-
-```r
 reg_Backward <- regsubsets(CARAVAN ~., data = ticDataTraining, method = "backward")
-summary(reg_Backward)
 ```
 
 ```
-## Subset selection object
-## Call: regsubsets.formula(CARAVAN ~ ., data = ticDataTraining, method = "backward")
-## 85 Variables  (and intercept)
-##          Forced in Forced out
-## MOSTYPE      FALSE      FALSE
-## MAANTHUI     FALSE      FALSE
-## MGEMOMV      FALSE      FALSE
-## MGEMLEEF     FALSE      FALSE
-## MOSHOOFD     FALSE      FALSE
-## MGODRK       FALSE      FALSE
-## MGODPR       FALSE      FALSE
-## MGODOV       FALSE      FALSE
-## MGODGE       FALSE      FALSE
-## MRELGE       FALSE      FALSE
-## MRELSA       FALSE      FALSE
-## MRELOV       FALSE      FALSE
-## MFALLEEN     FALSE      FALSE
-## MFGEKIND     FALSE      FALSE
-## MFWEKIND     FALSE      FALSE
-## MOPLHOOG     FALSE      FALSE
-## MOPLMIDD     FALSE      FALSE
-## MOPLLAAG     FALSE      FALSE
-## MBERHOOG     FALSE      FALSE
-## MBERZELF     FALSE      FALSE
-## MBERBOER     FALSE      FALSE
-## MBERMIDD     FALSE      FALSE
-## MBERARBG     FALSE      FALSE
-## MBERARBO     FALSE      FALSE
-## MSKA         FALSE      FALSE
-## MSKB1        FALSE      FALSE
-## MSKB2        FALSE      FALSE
-## MSKC         FALSE      FALSE
-## MSKD         FALSE      FALSE
-## MHHUUR       FALSE      FALSE
-## MHKOOP       FALSE      FALSE
-## MAUT1        FALSE      FALSE
-## MAUT2        FALSE      FALSE
-## MAUT0        FALSE      FALSE
-## MZFONDS      FALSE      FALSE
-## MZPART       FALSE      FALSE
-## MINKM30      FALSE      FALSE
-## MINK3045     FALSE      FALSE
-## MINK4575     FALSE      FALSE
-## MINK7512     FALSE      FALSE
-## MINK123M     FALSE      FALSE
-## MINKGEM      FALSE      FALSE
-## MKOOPKLA     FALSE      FALSE
-## PWAPART      FALSE      FALSE
-## PWABEDR      FALSE      FALSE
-## PWALAND      FALSE      FALSE
-## PPERSAUT     FALSE      FALSE
-## PBESAUT      FALSE      FALSE
-## PMOTSCO      FALSE      FALSE
-## PVRAAUT      FALSE      FALSE
-## PAANHANG     FALSE      FALSE
-## PTRACTOR     FALSE      FALSE
-## PWERKT       FALSE      FALSE
-## PBROM        FALSE      FALSE
-## PLEVEN       FALSE      FALSE
-## PPERSONG     FALSE      FALSE
-## PGEZONG      FALSE      FALSE
-## PWAOREG      FALSE      FALSE
-## PBRAND       FALSE      FALSE
-## PZEILPL      FALSE      FALSE
-## PPLEZIER     FALSE      FALSE
-## PFIETS       FALSE      FALSE
-## PINBOED      FALSE      FALSE
-## PBYSTAND     FALSE      FALSE
-## AWAPART      FALSE      FALSE
-## AWABEDR      FALSE      FALSE
-## AWALAND      FALSE      FALSE
-## APERSAUT     FALSE      FALSE
-## ABESAUT      FALSE      FALSE
-## AMOTSCO      FALSE      FALSE
-## AVRAAUT      FALSE      FALSE
-## AAANHANG     FALSE      FALSE
-## ATRACTOR     FALSE      FALSE
-## AWERKT       FALSE      FALSE
-## ABROM        FALSE      FALSE
-## ALEVEN       FALSE      FALSE
-## APERSONG     FALSE      FALSE
-## AGEZONG      FALSE      FALSE
-## AWAOREG      FALSE      FALSE
-## ABRAND       FALSE      FALSE
-## AZEILPL      FALSE      FALSE
-## APLEZIER     FALSE      FALSE
-## AFIETS       FALSE      FALSE
-## AINBOED      FALSE      FALSE
-## ABYSTAND     FALSE      FALSE
-## 1 subsets of each size up to 8
-## Selection Algorithm: backward
-##          MOSTYPE MAANTHUI MGEMOMV MGEMLEEF MOSHOOFD MGODRK MGODPR MGODOV
-## 1  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 2  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 3  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 4  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 5  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 6  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 7  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 8  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-##          MGODGE MRELGE MRELSA MRELOV MFALLEEN MFGEKIND MFWEKIND MOPLHOOG
-## 1  ( 1 ) " "    " "    " "    " "    " "      " "      " "      " "     
-## 2  ( 1 ) " "    " "    " "    " "    " "      " "      " "      " "     
-## 3  ( 1 ) " "    " "    " "    " "    " "      " "      " "      " "     
-## 4  ( 1 ) " "    " "    " "    " "    " "      " "      " "      " "     
-## 5  ( 1 ) " "    "*"    " "    " "    " "      " "      " "      " "     
-## 6  ( 1 ) " "    "*"    " "    " "    " "      " "      " "      " "     
-## 7  ( 1 ) " "    "*"    " "    " "    " "      " "      " "      " "     
-## 8  ( 1 ) " "    "*"    " "    " "    " "      " "      " "      " "     
-##          MOPLMIDD MOPLLAAG MBERHOOG MBERZELF MBERBOER MBERMIDD MBERARBG
-## 1  ( 1 ) " "      " "      " "      " "      " "      " "      " "     
-## 2  ( 1 ) " "      " "      " "      " "      " "      " "      " "     
-## 3  ( 1 ) " "      "*"      " "      " "      " "      " "      " "     
-## 4  ( 1 ) " "      "*"      " "      " "      " "      " "      " "     
-## 5  ( 1 ) " "      "*"      " "      " "      " "      " "      " "     
-## 6  ( 1 ) " "      "*"      " "      " "      " "      " "      " "     
-## 7  ( 1 ) " "      "*"      " "      " "      " "      " "      " "     
-## 8  ( 1 ) " "      "*"      " "      " "      "*"      " "      " "     
-##          MBERARBO MSKA MSKB1 MSKB2 MSKC MSKD MHHUUR MHKOOP MAUT1 MAUT2
-## 1  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 2  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 3  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 4  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 5  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 6  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 7  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 8  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-##          MAUT0 MZFONDS MZPART MINKM30 MINK3045 MINK4575 MINK7512 MINK123M
-## 1  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 2  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 3  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 4  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 5  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 6  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 7  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 8  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-##          MINKGEM MKOOPKLA PWAPART PWABEDR PWALAND PPERSAUT PBESAUT PMOTSCO
-## 1  ( 1 ) " "     " "      " "     " "     " "     "*"      " "     " "    
-## 2  ( 1 ) " "     " "      " "     " "     " "     "*"      " "     " "    
-## 3  ( 1 ) " "     " "      " "     " "     " "     "*"      " "     " "    
-## 4  ( 1 ) " "     " "      " "     " "     " "     "*"      " "     " "    
-## 5  ( 1 ) " "     " "      " "     " "     " "     "*"      " "     " "    
-## 6  ( 1 ) " "     " "      " "     " "     "*"     "*"      " "     " "    
-## 7  ( 1 ) " "     " "      " "     " "     "*"     "*"      " "     " "    
-## 8  ( 1 ) " "     " "      " "     " "     "*"     "*"      " "     " "    
-##          PVRAAUT PAANHANG PTRACTOR PWERKT PBROM PLEVEN PPERSONG PGEZONG
-## 1  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 2  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 3  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 4  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 5  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 6  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 7  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 8  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-##          PWAOREG PBRAND PZEILPL PPLEZIER PFIETS PINBOED PBYSTAND AWAPART
-## 1  ( 1 ) " "     " "    " "     " "      " "    " "     " "      " "    
-## 2  ( 1 ) " "     " "    " "     " "      " "    " "     " "      " "    
-## 3  ( 1 ) " "     " "    " "     " "      " "    " "     " "      " "    
-## 4  ( 1 ) " "     "*"    " "     " "      " "    " "     " "      " "    
-## 5  ( 1 ) " "     "*"    " "     " "      " "    " "     " "      " "    
-## 6  ( 1 ) " "     "*"    " "     " "      " "    " "     " "      " "    
-## 7  ( 1 ) " "     "*"    " "     " "      " "    " "     " "      " "    
-## 8  ( 1 ) " "     "*"    " "     " "      " "    " "     " "      " "    
-##          AWABEDR AWALAND APERSAUT ABESAUT AMOTSCO AVRAAUT AAANHANG
-## 1  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 2  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 3  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 4  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 5  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 6  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 7  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 8  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-##          ATRACTOR AWERKT ABROM ALEVEN APERSONG AGEZONG AWAOREG ABRAND
-## 1  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 2  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 3  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 4  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 5  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 6  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 7  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 8  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-##          AZEILPL APLEZIER AFIETS AINBOED ABYSTAND
-## 1  ( 1 ) " "     " "      " "    " "     " "     
-## 2  ( 1 ) " "     "*"      " "    " "     " "     
-## 3  ( 1 ) " "     "*"      " "    " "     " "     
-## 4  ( 1 ) " "     "*"      " "    " "     " "     
-## 5  ( 1 ) " "     "*"      " "    " "     " "     
-## 6  ( 1 ) " "     "*"      " "    " "     " "     
-## 7  ( 1 ) " "     "*"      " "    " "     "*"     
-## 8  ( 1 ) " "     "*"      " "    " "     "*"
+## Warning in leaps.setup(x, y, wt = wt, nbest = nbest, nvmax = nvmax,
+## force.in = force.in, : 9 linear dependencies found
+```
+
+```
+## Reordering variables and trying again:
 ```
 
 ```r
 reg_Forward <- regsubsets(CARAVAN ~., data = ticDataTraining, method = "forward")
-summary(reg_Forward)
 ```
 
 ```
-## Subset selection object
-## Call: regsubsets.formula(CARAVAN ~ ., data = ticDataTraining, method = "forward")
-## 85 Variables  (and intercept)
-##          Forced in Forced out
-## MOSTYPE      FALSE      FALSE
-## MAANTHUI     FALSE      FALSE
-## MGEMOMV      FALSE      FALSE
-## MGEMLEEF     FALSE      FALSE
-## MOSHOOFD     FALSE      FALSE
-## MGODRK       FALSE      FALSE
-## MGODPR       FALSE      FALSE
-## MGODOV       FALSE      FALSE
-## MGODGE       FALSE      FALSE
-## MRELGE       FALSE      FALSE
-## MRELSA       FALSE      FALSE
-## MRELOV       FALSE      FALSE
-## MFALLEEN     FALSE      FALSE
-## MFGEKIND     FALSE      FALSE
-## MFWEKIND     FALSE      FALSE
-## MOPLHOOG     FALSE      FALSE
-## MOPLMIDD     FALSE      FALSE
-## MOPLLAAG     FALSE      FALSE
-## MBERHOOG     FALSE      FALSE
-## MBERZELF     FALSE      FALSE
-## MBERBOER     FALSE      FALSE
-## MBERMIDD     FALSE      FALSE
-## MBERARBG     FALSE      FALSE
-## MBERARBO     FALSE      FALSE
-## MSKA         FALSE      FALSE
-## MSKB1        FALSE      FALSE
-## MSKB2        FALSE      FALSE
-## MSKC         FALSE      FALSE
-## MSKD         FALSE      FALSE
-## MHHUUR       FALSE      FALSE
-## MHKOOP       FALSE      FALSE
-## MAUT1        FALSE      FALSE
-## MAUT2        FALSE      FALSE
-## MAUT0        FALSE      FALSE
-## MZFONDS      FALSE      FALSE
-## MZPART       FALSE      FALSE
-## MINKM30      FALSE      FALSE
-## MINK3045     FALSE      FALSE
-## MINK4575     FALSE      FALSE
-## MINK7512     FALSE      FALSE
-## MINK123M     FALSE      FALSE
-## MINKGEM      FALSE      FALSE
-## MKOOPKLA     FALSE      FALSE
-## PWAPART      FALSE      FALSE
-## PWABEDR      FALSE      FALSE
-## PWALAND      FALSE      FALSE
-## PPERSAUT     FALSE      FALSE
-## PBESAUT      FALSE      FALSE
-## PMOTSCO      FALSE      FALSE
-## PVRAAUT      FALSE      FALSE
-## PAANHANG     FALSE      FALSE
-## PTRACTOR     FALSE      FALSE
-## PWERKT       FALSE      FALSE
-## PBROM        FALSE      FALSE
-## PLEVEN       FALSE      FALSE
-## PPERSONG     FALSE      FALSE
-## PGEZONG      FALSE      FALSE
-## PWAOREG      FALSE      FALSE
-## PBRAND       FALSE      FALSE
-## PZEILPL      FALSE      FALSE
-## PPLEZIER     FALSE      FALSE
-## PFIETS       FALSE      FALSE
-## PINBOED      FALSE      FALSE
-## PBYSTAND     FALSE      FALSE
-## AWAPART      FALSE      FALSE
-## AWABEDR      FALSE      FALSE
-## AWALAND      FALSE      FALSE
-## APERSAUT     FALSE      FALSE
-## ABESAUT      FALSE      FALSE
-## AMOTSCO      FALSE      FALSE
-## AVRAAUT      FALSE      FALSE
-## AAANHANG     FALSE      FALSE
-## ATRACTOR     FALSE      FALSE
-## AWERKT       FALSE      FALSE
-## ABROM        FALSE      FALSE
-## ALEVEN       FALSE      FALSE
-## APERSONG     FALSE      FALSE
-## AGEZONG      FALSE      FALSE
-## AWAOREG      FALSE      FALSE
-## ABRAND       FALSE      FALSE
-## AZEILPL      FALSE      FALSE
-## APLEZIER     FALSE      FALSE
-## AFIETS       FALSE      FALSE
-## AINBOED      FALSE      FALSE
-## ABYSTAND     FALSE      FALSE
-## 1 subsets of each size up to 8
-## Selection Algorithm: forward
-##          MOSTYPE MAANTHUI MGEMOMV MGEMLEEF MOSHOOFD MGODRK MGODPR MGODOV
-## 1  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 2  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 3  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 4  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 5  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 6  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 7  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-## 8  ( 1 ) " "     " "      " "     " "      " "      " "    " "    " "   
-##          MGODGE MRELGE MRELSA MRELOV MFALLEEN MFGEKIND MFWEKIND MOPLHOOG
-## 1  ( 1 ) " "    " "    " "    " "    " "      " "      " "      " "     
-## 2  ( 1 ) " "    " "    " "    " "    " "      " "      " "      " "     
-## 3  ( 1 ) " "    " "    " "    " "    " "      " "      " "      " "     
-## 4  ( 1 ) " "    " "    " "    " "    " "      " "      " "      " "     
-## 5  ( 1 ) " "    " "    " "    " "    " "      " "      " "      " "     
-## 6  ( 1 ) " "    "*"    " "    " "    " "      " "      " "      " "     
-## 7  ( 1 ) " "    "*"    " "    " "    " "      " "      " "      " "     
-## 8  ( 1 ) " "    "*"    " "    " "    " "      " "      " "      " "     
-##          MOPLMIDD MOPLLAAG MBERHOOG MBERZELF MBERBOER MBERMIDD MBERARBG
-## 1  ( 1 ) " "      " "      " "      " "      " "      " "      " "     
-## 2  ( 1 ) " "      " "      " "      " "      " "      " "      " "     
-## 3  ( 1 ) " "      " "      " "      " "      " "      " "      " "     
-## 4  ( 1 ) " "      " "      " "      " "      " "      " "      " "     
-## 5  ( 1 ) " "      "*"      " "      " "      " "      " "      " "     
-## 6  ( 1 ) " "      "*"      " "      " "      " "      " "      " "     
-## 7  ( 1 ) " "      "*"      " "      " "      " "      " "      " "     
-## 8  ( 1 ) " "      "*"      " "      " "      " "      " "      " "     
-##          MBERARBO MSKA MSKB1 MSKB2 MSKC MSKD MHHUUR MHKOOP MAUT1 MAUT2
-## 1  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 2  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 3  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 4  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 5  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 6  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 7  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-## 8  ( 1 ) " "      " "  " "   " "   " "  " "  " "    " "    " "   " "  
-##          MAUT0 MZFONDS MZPART MINKM30 MINK3045 MINK4575 MINK7512 MINK123M
-## 1  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 2  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 3  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 4  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 5  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 6  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 7  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-## 8  ( 1 ) " "   " "     " "    " "     " "      " "      " "      " "     
-##          MINKGEM MKOOPKLA PWAPART PWABEDR PWALAND PPERSAUT PBESAUT PMOTSCO
-## 1  ( 1 ) " "     " "      " "     " "     " "     "*"      " "     " "    
-## 2  ( 1 ) " "     " "      " "     " "     " "     "*"      " "     " "    
-## 3  ( 1 ) " "     "*"      " "     " "     " "     "*"      " "     " "    
-## 4  ( 1 ) " "     "*"      "*"     " "     " "     "*"      " "     " "    
-## 5  ( 1 ) " "     "*"      "*"     " "     " "     "*"      " "     " "    
-## 6  ( 1 ) " "     "*"      "*"     " "     " "     "*"      " "     " "    
-## 7  ( 1 ) " "     "*"      "*"     " "     " "     "*"      " "     " "    
-## 8  ( 1 ) " "     "*"      "*"     " "     " "     "*"      " "     " "    
-##          PVRAAUT PAANHANG PTRACTOR PWERKT PBROM PLEVEN PPERSONG PGEZONG
-## 1  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 2  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 3  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 4  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 5  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 6  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 7  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-## 8  ( 1 ) " "     " "      " "      " "    " "   " "    " "      " "    
-##          PWAOREG PBRAND PZEILPL PPLEZIER PFIETS PINBOED PBYSTAND AWAPART
-## 1  ( 1 ) " "     " "    " "     " "      " "    " "     " "      " "    
-## 2  ( 1 ) " "     " "    " "     " "      " "    " "     " "      " "    
-## 3  ( 1 ) " "     " "    " "     " "      " "    " "     " "      " "    
-## 4  ( 1 ) " "     " "    " "     " "      " "    " "     " "      " "    
-## 5  ( 1 ) " "     " "    " "     " "      " "    " "     " "      " "    
-## 6  ( 1 ) " "     " "    " "     " "      " "    " "     " "      " "    
-## 7  ( 1 ) " "     "*"    " "     " "      " "    " "     " "      " "    
-## 8  ( 1 ) " "     "*"    " "     " "      " "    " "     " "      " "    
-##          AWABEDR AWALAND APERSAUT ABESAUT AMOTSCO AVRAAUT AAANHANG
-## 1  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 2  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 3  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 4  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 5  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 6  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 7  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-## 8  ( 1 ) " "     " "     " "      " "     " "     " "     " "     
-##          ATRACTOR AWERKT ABROM ALEVEN APERSONG AGEZONG AWAOREG ABRAND
-## 1  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 2  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 3  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 4  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 5  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 6  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 7  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-## 8  ( 1 ) " "      " "    " "   " "    " "      " "     " "     " "   
-##          AZEILPL APLEZIER AFIETS AINBOED ABYSTAND
-## 1  ( 1 ) " "     " "      " "    " "     " "     
-## 2  ( 1 ) " "     "*"      " "    " "     " "     
-## 3  ( 1 ) " "     "*"      " "    " "     " "     
-## 4  ( 1 ) " "     "*"      " "    " "     " "     
-## 5  ( 1 ) " "     "*"      " "    " "     " "     
-## 6  ( 1 ) " "     "*"      " "    " "     " "     
-## 7  ( 1 ) " "     "*"      " "    " "     " "     
-## 8  ( 1 ) " "     "*"      " "    " "     "*"
+## Warning in leaps.setup(x, y, wt = wt, nbest = nbest, nvmax = nvmax,
+## force.in = force.in, : 9 linear dependencies found
+```
+
+```
+## Reordering variables and trying again:
+```
+
+### SVM Classifier Using Linear and Radial Kernels
+
+
+```r
+ticData.SVM.Linear <- svm(CARAVAN ~ ., data = ticDataTraining, kernel = "linear", probability = TRUE)
+ticData.SVM.Radial <- svm(CARAVAN ~ ., data = ticDataTraining, kernel = "radial", probability = TRUE)
+ticData.SVM.Linear.Pred <- predict(ticData.SVM.Linear, newdata = ticDataTest[-86], probability = TRUE)
+ticData.SVM.Radial.Pred <- predict(ticData.SVM.Radial, newdata = ticDataTest[-86], probability = TRUE)
 ```
 
 ### Naive Bayes Classifier
 
 
 ```r
-ticDataTraining.NB <- naiveBayes(data = ticDataTraining, CARAVAN ~ MOSTYPE + APERSAUT + PPERSAUT +
-                                     PBRAND + MKOOPKLA)
-ticDataTraining.NB$apriori
+ticData.NB <- naiveBayes(data = ticDataTraining, CARAVAN ~ ., laplace = 3)
+ticData.NB.pred <- predict(ticData.NB, ticDataTest[-86], type = "raw")
 ```
 
-```
-## Y
-##    0    1 
-## 5474  348
-```
+### Decision Tree Classifier
+
 
 ```r
-nb_prediction <- predict(ticDataTraining.NB, ticDataTraining)
-summary(nb_prediction)
+ticData.Tree <- rpart(CARAVAN ~ ., data = ticDataTraining, method = "class", 
+                      control = rpart.control(minsplit=2, minbucket=1, cp=0.001))
+ticData.PrunedTree <- prune(ticData.Tree, 0.0045, control = rpart.control(minsplit=2, minbucket=1))
+plot(ticData.PrunedTree, uniform = TRUE, margin = 0.1)
+text(ticData.PrunedTree, use.n = T, cex = 0.8)
 ```
 
-```
-##    0    1 
-## 5756   66
-```
+![](CapstoneProject_files/figure-html/unnamed-chunk-12-1.png)
 
 ```r
-table(pred = nb_prediction, ticDataTraining$CARAVAN)
+ticDataTraining.PredictTree <- predict(ticData.PrunedTree)
+ticDataTest.PredictTree <- predict(ticData.PrunedTree, ticDataTest[-86])
 ```
 
-```
-##     
-## pred    0    1
-##    0 5424  332
-##    1   50   16
-```
 ### Random Forest Classifier
 
 
 ```r
-ticDataTraining.RF <- randomForest(CARAVAN ~ ., 
+ticData.RF <- randomForest(CARAVAN ~ ., 
                                    data = ticDataTraining, 
                                    nTree = 100,
-                                   importance = TRUE)
+                                   importance = TRUE,
+                                   proximity = TRUE)
 
-varImpPlot(ticDataTraining.RF)
+round(importance(ticData.RF),2)
 ```
 
-![](CapstoneProject_files/figure-html/unnamed-chunk-11-1.png)
-
-```r
-trainingPredictions <- data.frame(predict(ticDataTraining.RF, ticDataTraining, type = "prob"))
-ticDataTraining <- cbind(ticDataTraining, trainingPredictions)
-
-ticDataTest <- ticDataTest[, !(colnames(ticDataTest) %in% c("Set"))]
-testPredictions <- data.frame(predict(ticDataTraining.RF, newdata = ticDataTest, type = "prob"))
-
-ticDataTest <- cbind(ticDataTest, testPredictions)
-
-ggplot(ticDataTraining, aes(x = CARAVAN, y = X0, color = CARAVAN)) + geom_boxplot() + theme_bw()
+```
+##              0     1 MeanDecreaseAccuracy MeanDecreaseGini
+## MOSTYPE   3.34 -0.79                 3.29            40.83
+## MAANTHUI  0.34  1.44                 0.76             2.41
+## MGEMOMV   6.80 -2.33                 6.49             5.45
+## MGEMLEEF  7.07 -1.09                 6.82             6.72
+## MOSHOOFD  8.18 -0.42                 8.48            13.04
+## MGODRK    3.22 -0.88                 2.94             5.31
+## MGODPR    4.61 -0.33                 4.50            10.31
+## MGODOV    5.99 -1.30                 5.66             7.80
+## MGODGE    4.41  0.52                 4.68            10.70
+## MRELGE    9.22 -2.02                 8.84             8.39
+## MRELSA    4.03 -1.45                 3.73             5.23
+## MRELOV   11.15 -4.27                10.40             7.43
+## MFALLEEN  8.99 -2.74                 8.79             7.88
+## MFGEKIND  5.62 -2.89                 4.83            10.20
+## MFWEKIND  8.65 -2.23                 8.19            10.63
+## MOPLHOOG 10.88 -2.79                10.74             9.72
+## MOPLMIDD  8.68 -1.57                 8.56            11.42
+## MOPLLAAG 10.34 -1.53                10.59            10.79
+## MBERHOOG  6.12 -1.32                 5.99             8.88
+## MBERZELF  5.08  0.78                 5.19             5.25
+## MBERBOER  6.20 -0.54                 6.16             3.83
+## MBERMIDD  6.44  4.88                 8.05            10.83
+## MBERARBG  9.28 -2.26                 9.03            10.07
+## MBERARBO  7.27 -3.39                 6.62             9.78
+## MSKA     10.54 -4.06                10.12             8.98
+## MSKB1     6.01 -0.20                 6.13             8.68
+## MSKB2     7.48 -1.98                 6.71             9.39
+## MSKC      8.52 -1.14                 8.69            10.40
+## MSKD      6.84 -0.45                 6.75             5.97
+## MHHUUR    8.47 -1.29                 8.53             9.59
+## MHKOOP    7.28 -2.11                 7.23             9.34
+## MAUT1     9.05 -2.07                 8.68             8.25
+## MAUT2     5.56 -3.08                 4.96             7.32
+## MAUT0     9.26 -1.23                 9.37             7.21
+## MZFONDS   6.88 -2.27                 6.90             8.84
+## MZPART    7.30 -5.08                 6.58             8.98
+## MINKM30   7.71 -1.38                 7.75             8.85
+## MINK3045  5.96 -1.25                 5.69            10.45
+## MINK4575  5.95 -0.70                 5.77             9.80
+## MINK7512  8.55 -1.76                 8.22             8.13
+## MINK123M  2.52  1.03                 2.79             3.26
+## MINKGEM   9.09  1.76                 9.71             8.08
+## MKOOPKLA  5.39  2.19                 6.14            10.26
+## PWAPART   5.25  3.22                 6.33            11.65
+## PWABEDR  -1.91 -2.45                -2.49             1.14
+## PWALAND   1.72 -0.56                 1.60             0.41
+## PPERSAUT -2.04 17.29                 3.20            18.72
+## PBESAUT  -1.81  0.43                -1.79             0.81
+## PMOTSCO  -1.04 -0.19                -1.08             3.48
+## PVRAAUT   0.00  0.00                 0.00             0.01
+## PAANHANG -0.11 -0.64                -0.23             1.43
+## PTRACTOR  2.90 -0.42                 2.78             1.67
+## PWERKT    0.00  0.00                 0.00             0.02
+## PBROM    10.21 -4.88                 9.09             3.20
+## PLEVEN   -0.59  2.00                -0.03             4.75
+## PPERSONG  0.59  0.00                 0.59             0.20
+## PGEZONG   0.48  3.29                 1.54             1.99
+## PWAOREG   2.12  2.41                 2.76             1.71
+## PBRAND    2.71  7.93                 5.23            19.45
+## PZEILPL  -0.46 -1.00                -0.64             0.35
+## PPLEZIER  8.32 11.49                11.86             5.87
+## PFIETS    1.34  0.34                 1.39             3.21
+## PINBOED   1.39 -2.10                 0.96             1.36
+## PBYSTAND  1.40  2.94                 2.19             4.04
+## AWAPART   3.75  2.92                 4.58             8.12
+## AWABEDR  -0.18  1.25                 0.13             0.97
+## AWALAND   0.91  0.58                 1.04             0.34
+## APERSAUT -5.30 12.74                -1.66            17.07
+## ABESAUT   0.37 -0.99                 0.18             0.57
+## AMOTSCO  -1.75  1.38                -1.18             3.39
+## AVRAAUT   0.00  0.00                 0.00             0.00
+## AAANHANG  3.01  0.22                 2.97             1.24
+## ATRACTOR  1.63 -3.18                 0.55             0.97
+## AWERKT    1.00  0.00                 1.00             0.02
+## ABROM     8.48 -1.76                 8.01             2.37
+## ALEVEN   -4.25  2.43                -3.21             5.77
+## APERSONG -0.80  1.00                -0.64             0.20
+## AGEZONG  -1.02  0.87                -0.66             1.17
+## AWAOREG   2.43  1.70                 2.75             1.55
+## ABRAND    3.47  0.13                 3.55             8.15
+## AZEILPL   0.31 -1.00                -0.02             0.19
+## APLEZIER  9.92 11.51                12.61             5.27
+## AFIETS    2.41  0.15                 2.28             4.41
+## AINBOED   2.15 -0.27                 2.01             1.09
+## ABYSTAND  2.87  3.14                 3.79             3.29
 ```
 
-![](CapstoneProject_files/figure-html/unnamed-chunk-11-2.png)
-
 ```r
-ggplot(ticDataTraining, aes(x = CARAVAN, y = X1, color = CARAVAN)) + geom_boxplot() + theme_bw()
+ticData.RF.pred <- predict(ticData.RF, newdata = ticDataTest[-86], type = "prob")
 ```
 
-![](CapstoneProject_files/figure-html/unnamed-chunk-11-3.png)
-
-```r
-ggplot(ticDataTest, aes(x = CARAVAN, y = X0, color = CARAVAN)) + geom_boxplot() + theme_bw()
-```
-
-![](CapstoneProject_files/figure-html/unnamed-chunk-11-4.png)
-
-```r
-ggplot(ticDataTest, aes(x = CARAVAN, y = X1, color = CARAVAN)) + geom_boxplot() + theme_bw()
-```
-
-![](CapstoneProject_files/figure-html/unnamed-chunk-11-5.png)
-
-### Building a Logistic Regression Model
+### Building a Logistic Regression Model Using Variables from forward/backward variable selection
 
 
 ```r
-ticDataTraining$CARAVAN <- as.factor(ticDataTraining$CARAVAN)
-ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
-
-ticDataLogitModel <- glm(data = ticDataTraining, CARAVAN ~ 
+ticDataLogitModel.FB.Var <- glm(data = ticDataTraining, CARAVAN ~ 
                              MRELGE +
                              MOPLLAAG +
                              MBERBOER +
@@ -767,7 +351,7 @@ ticDataLogitModel <- glm(data = ticDataTraining, CARAVAN ~
                              ABYSTAND,
                          family = binomial)
 
-summary(ticDataLogitModel)
+summary(ticDataLogitModel.FB.Var)
 ```
 
 ```
@@ -807,7 +391,7 @@ summary(ticDataLogitModel)
 ```
 
 ```r
-anova(ticDataLogitModel, test="Chisq")
+anova(ticDataLogitModel.FB.Var, test = "Chisq")
 ```
 
 ```
@@ -837,131 +421,57 @@ anova(ticDataLogitModel, test="Chisq")
 ```
 
 ```r
-ticDataTrainingPrediction <- predict(ticDataLogitModel, type = "response")
-summary(ticDataTrainingPrediction)
+ticData.Logit.FB.Pred <- predict(ticDataLogitModel.FB.Var, newdata = ticDataTest[-86], type = "response")
 ```
 
-```
-##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## 0.002136 0.019120 0.038620 0.059770 0.079160 0.944500
-```
-
-```r
-table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.14)
-```
-
-```
-##    
-##     FALSE TRUE
-##   0  5036  438
-##   1   223  125
-```
-
-```r
-tapply(ticDataTrainingPrediction, ticDataTraining$CARAVAN, mean)
-```
-
-```
-##          0          1 
-## 0.05583857 0.12166573
-```
-
-```r
-ticDataTraining$Prediction <- ticDataTrainingPrediction
-ROC_Plot <- roc(CARAVAN ~ Prediction, data = ticDataTraining)
-plot(ROC_Plot)
-```
-
-![](CapstoneProject_files/figure-html/unnamed-chunk-12-1.png)
-
-```
-## 
-## Call:
-## roc.formula(formula = CARAVAN ~ Prediction, data = ticDataTraining)
-## 
-## Data: Prediction in 5474 controls (CARAVAN 0) < 348 cases (CARAVAN 1).
-## Area under the curve: 0.7585
-```
-
-```r
-auc(ticDataTraining$CARAVAN, ticDataTraining$Prediction)
-```
-
-```
-## Area under the curve: 0.7585
-```
-
-```r
-ticDataTestPrediction <- predict(ticDataLogitModel, newdata = ticDataTest, type = "response")
-table(ticDataTest$CARAVAN, ticDataTestPrediction > 0.11)
-```
-
-```
-##    
-##     FALSE TRUE
-##   0  3287  475
-##   1   146   92
-```
-
-```r
-tapply(ticDataTestPrediction, ticDataTest$CARAVAN, mean)
-```
-
-```
-##          0          1 
-## 0.05504614 0.11048709
-```
-
-### Logit Model 2 Using Var importance table from Random Forest Classifier
+### Logit Model 2 Using Variable importance table from Random Forest Classifier
 
 
 ```r
-ticDataTraining$CARAVAN <- as.factor(ticDataTraining$CARAVAN)
-ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
-
-ticDataLogitModel <- glm(data = ticDataTraining, CARAVAN ~ 
- #                            MOSTYPE +
+ticDataLogitModel.RF.Var <- glm(data = ticDataTraining, CARAVAN ~ 
+#                             MOSTYPE +
                              MKOOPKLA +
-     PBRAND +
- #                            APERSAUT +
+                             PBRAND +
+                             APERSAUT +
                              PWAPART +
                              PPERSAUT,
                          family = binomial)
 
-summary(ticDataLogitModel)
+summary(ticDataLogitModel.RF.Var)
 ```
 
 ```
 ## 
 ## Call:
-## glm(formula = CARAVAN ~ MKOOPKLA + PBRAND + PWAPART + PPERSAUT, 
-##     family = binomial, data = ticDataTraining)
+## glm(formula = CARAVAN ~ MKOOPKLA + PBRAND + APERSAUT + PWAPART + 
+##     PPERSAUT, family = binomial, data = ticDataTraining)
 ## 
 ## Deviance Residuals: 
 ##     Min       1Q   Median       3Q      Max  
-## -0.7873  -0.3991  -0.2734  -0.1936   3.0688  
+## -0.8015  -0.3997  -0.2735  -0.1938   3.0681  
 ## 
 ## Coefficients:
 ##             Estimate Std. Error z value Pr(>|z|)    
-## (Intercept) -4.88285    0.19215 -25.412  < 2e-16 ***
-## MKOOPKLA     0.18303    0.02836   6.454 1.09e-10 ***
-## PBRAND       0.10500    0.03484   3.013  0.00258 ** 
-## PWAPART      0.19224    0.06718   2.861  0.00422 ** 
-## PPERSAUT     0.22880    0.02364   9.678  < 2e-16 ***
+## (Intercept) -4.88049    0.19224 -25.388  < 2e-16 ***
+## MKOOPKLA     0.18290    0.02837   6.448 1.13e-10 ***
+## PBRAND       0.10409    0.03491   2.982  0.00287 ** 
+## APERSAUT     0.06535    0.16909   0.387  0.69911    
+## PWAPART      0.19327    0.06721   2.876  0.00403 ** 
+## PPERSAUT     0.21615    0.04048   5.339 9.32e-08 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## (Dispersion parameter for binomial family taken to be 1)
 ## 
 ##     Null deviance: 2635.5  on 5821  degrees of freedom
-## Residual deviance: 2407.7  on 5817  degrees of freedom
-## AIC: 2417.7
+## Residual deviance: 2407.5  on 5816  degrees of freedom
+## AIC: 2419.5
 ## 
 ## Number of Fisher Scoring iterations: 6
 ```
 
 ```r
-anova(ticDataLogitModel, test="Chisq")
+anova(ticDataLogitModel.RF.Var, test = "Chisq")
 ```
 
 ```
@@ -978,84 +488,84 @@ anova(ticDataLogitModel, test="Chisq")
 ## NULL                      5821     2635.5              
 ## MKOOPKLA  1   52.905      5820     2582.6 3.501e-13 ***
 ## PBRAND    1   41.235      5819     2541.4 1.350e-10 ***
-## PWAPART   1   21.254      5818     2520.2 4.022e-06 ***
-## PPERSAUT  1  112.487      5817     2407.7 < 2.2e-16 ***
+## APERSAUT  1   88.456      5818     2452.9 < 2.2e-16 ***
+## PWAPART   1   13.476      5817     2439.5 0.0002416 ***
+## PPERSAUT  1   31.955      5816     2407.5 1.578e-08 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 ```r
-ticDataTrainingPrediction <- predict(ticDataLogitModel, type = "response")
-summary(ticDataTrainingPrediction)
+ticData.Logit.RF.Pred <- predict(ticDataLogitModel.RF.Var, newdata = ticDataTest[-86], type = "response")
 ```
 
-```
-##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## 0.009015 0.021510 0.042960 0.059770 0.082270 0.266500
-```
+### Comparing the Classifier Models:
+
 
 ```r
-table(ticDataTraining$CARAVAN, ticDataTrainingPrediction > 0.14)
+c.legend <- c("Decision Tree AUC = ", 
+              "Random Forest AUC = ", 
+              "Naive Bayes AUC = ",
+              "SVM Linear AUC = ",
+              "SVM Radial AUC = ",
+              "Logit with Fwd/Back Variable Selection AUC = ",
+              "Logit with Random Forest Variable Selection AUC = ")
+
+# ROC For Decision Tree
+
+pred <- prediction(ticDataTest.PredictTree[,2], ticDataTest$CARAVAN)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf, col = "red", lwd = 2)
+c.legend[1] <- paste(c.legend[1], round((performance(pred, 'auc')@y.values)[[1]],3))
+
+# ROC For Random Forest
+
+pred <- prediction(ticData.RF.pred[,2], ticDataTest$CARAVAN)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf, add = TRUE, col = "green", lwd = 2)
+c.legend[2] <- paste(c.legend[2], round((performance(pred, 'auc')@y.values)[[1]],3))
+
+#ROC For Naive Bayes
+
+pred <- prediction(ticData.NB.pred[,2], ticDataTest$CARAVAN)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf, add = TRUE, col = "blue", lwd = 2)
+c.legend[3] <- paste(c.legend[3], round((performance(pred, 'auc')@y.values)[[1]],3))
+
+#ROC For SVM Linear Kernel
+
+pred <- prediction(attr(ticData.SVM.Linear.Pred, "probabilities")[,2], ticDataTest$CARAVAN)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf, add = TRUE, col = "purple", lwd = 2)
+c.legend[4] <- paste(c.legend[4], round((performance(pred, 'auc')@y.values)[[1]],3))
+
+#ROC For SVM Radial Kernel
+
+pred <- prediction(attr(ticData.SVM.Radial.Pred, "probabilities")[,2], ticDataTest$CARAVAN)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf, add = TRUE, col = "black", lwd = 2)
+c.legend[5] <- paste(c.legend[5], round((performance(pred, 'auc')@y.values)[[1]],3))
+
+#ROC For Logit with Forward/Backward variable selection
+
+pred <- prediction(ticData.Logit.FB.Pred, ticDataTest$CARAVAN)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf, add = TRUE, col = "cyan", lwd = 2)
+c.legend[6] <- paste(c.legend[6], round((performance(pred, 'auc')@y.values)[[1]],3))
+
+#ROC For Logit with Random Forest variable selection
+
+pred <- prediction(ticData.Logit.RF.Pred, ticDataTest$CARAVAN)
+perf <- performance(pred, "tpr", "fpr")
+plot(perf, add = TRUE, col = "pink", lwd = 2)
+c.legend[7] <- paste(c.legend[7], round((performance(pred, 'auc')@y.values)[[1]],3))
+
+legend("bottomright", 
+       c.legend, 
+       lty = c(1,1,1,1,1,1,1), 
+       lwd = c(2,2,2,2,2,2,2), 
+       col = c("red", "green", "blue", "purple", "black", "cyan", "pink"),
+       pch=21, cex = 1)
 ```
 
-```
-##    
-##     FALSE TRUE
-##   0  5042  432
-##   1   240  108
-```
-
-```r
-tapply(ticDataTrainingPrediction, ticDataTraining$CARAVAN, mean)
-```
-
-```
-##          0          1 
-## 0.05700664 0.10329217
-```
-
-```r
-ticDataTraining$Prediction <- ticDataTrainingPrediction
-ROC_Plot <- roc(CARAVAN ~ Prediction, data = ticDataTraining)
-plot(ROC_Plot)
-```
-
-![](CapstoneProject_files/figure-html/unnamed-chunk-13-1.png)
-
-```
-## 
-## Call:
-## roc.formula(formula = CARAVAN ~ Prediction, data = ticDataTraining)
-## 
-## Data: Prediction in 5474 controls (CARAVAN 0) < 348 cases (CARAVAN 1).
-## Area under the curve: 0.7285
-```
-
-```r
-auc(ticDataTraining$CARAVAN, ticDataTraining$Prediction)
-```
-
-```
-## Area under the curve: 0.7285
-```
-
-```r
-ticDataTestPrediction <- predict(ticDataLogitModel, newdata = ticDataTest, type = "response")
-table(ticDataTest$CARAVAN, ticDataTestPrediction > 0.11)
-```
-
-```
-##    
-##     FALSE TRUE
-##   0  3218  544
-##   1   140   98
-```
-
-```r
-tapply(ticDataTestPrediction, ticDataTest$CARAVAN, mean)
-```
-
-```
-##          0          1 
-## 0.05747648 0.09949558
-```
+![](CapstoneProject_files/figure-html/unnamed-chunk-16-1.png)
