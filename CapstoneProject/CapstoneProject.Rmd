@@ -1390,7 +1390,7 @@ ticData.Logit.FB.Pred <- predict(ticDataLogitModel.FB.Var, newdata = ticDataTest
 
 ```{r}
 ticDataLogitModel.RF.Var <- glm(data = ticDataTraining, CARAVAN ~ 
-#                             MOSTYPE +
+                             MOSTYPE +
                              MKOOPKLA +
                              PBRAND +
                              APERSAUT +
@@ -1437,7 +1437,7 @@ c.legend[3] <- paste(c.legend[3], round((performance(pred, 'auc')@y.values)[[1]]
 
 #ROC For SVM Linear Kernel
 
-pred <- prediction(attr(ticData.SVM.Linear.Pred, "probabilities")[,2], ticDataTest$CARAVAN)
+pred <- prediction(attr(ticData.SVM.Linear.Pred, "probabilities")[,1], ticDataTest$CARAVAN)
 perf <- performance(pred, "tpr", "fpr")
 plot(perf, add = TRUE, col = "purple", lwd = 2)
 c.legend[4] <- paste(c.legend[4], round((performance(pred, 'auc')@y.values)[[1]],3))

@@ -243,91 +243,91 @@ round(importance(ticData.RF),2)
 
 ```
 ##              0     1 MeanDecreaseAccuracy MeanDecreaseGini
-## MOSTYPE   3.34 -0.79                 3.29            40.83
-## MAANTHUI  0.34  1.44                 0.76             2.41
-## MGEMOMV   6.80 -2.33                 6.49             5.45
-## MGEMLEEF  7.07 -1.09                 6.82             6.72
-## MOSHOOFD  8.18 -0.42                 8.48            13.04
-## MGODRK    3.22 -0.88                 2.94             5.31
-## MGODPR    4.61 -0.33                 4.50            10.31
-## MGODOV    5.99 -1.30                 5.66             7.80
-## MGODGE    4.41  0.52                 4.68            10.70
-## MRELGE    9.22 -2.02                 8.84             8.39
-## MRELSA    4.03 -1.45                 3.73             5.23
-## MRELOV   11.15 -4.27                10.40             7.43
-## MFALLEEN  8.99 -2.74                 8.79             7.88
-## MFGEKIND  5.62 -2.89                 4.83            10.20
-## MFWEKIND  8.65 -2.23                 8.19            10.63
-## MOPLHOOG 10.88 -2.79                10.74             9.72
-## MOPLMIDD  8.68 -1.57                 8.56            11.42
-## MOPLLAAG 10.34 -1.53                10.59            10.79
-## MBERHOOG  6.12 -1.32                 5.99             8.88
-## MBERZELF  5.08  0.78                 5.19             5.25
-## MBERBOER  6.20 -0.54                 6.16             3.83
-## MBERMIDD  6.44  4.88                 8.05            10.83
-## MBERARBG  9.28 -2.26                 9.03            10.07
-## MBERARBO  7.27 -3.39                 6.62             9.78
-## MSKA     10.54 -4.06                10.12             8.98
-## MSKB1     6.01 -0.20                 6.13             8.68
-## MSKB2     7.48 -1.98                 6.71             9.39
-## MSKC      8.52 -1.14                 8.69            10.40
-## MSKD      6.84 -0.45                 6.75             5.97
-## MHHUUR    8.47 -1.29                 8.53             9.59
-## MHKOOP    7.28 -2.11                 7.23             9.34
-## MAUT1     9.05 -2.07                 8.68             8.25
-## MAUT2     5.56 -3.08                 4.96             7.32
-## MAUT0     9.26 -1.23                 9.37             7.21
-## MZFONDS   6.88 -2.27                 6.90             8.84
-## MZPART    7.30 -5.08                 6.58             8.98
-## MINKM30   7.71 -1.38                 7.75             8.85
-## MINK3045  5.96 -1.25                 5.69            10.45
-## MINK4575  5.95 -0.70                 5.77             9.80
-## MINK7512  8.55 -1.76                 8.22             8.13
-## MINK123M  2.52  1.03                 2.79             3.26
-## MINKGEM   9.09  1.76                 9.71             8.08
-## MKOOPKLA  5.39  2.19                 6.14            10.26
-## PWAPART   5.25  3.22                 6.33            11.65
-## PWABEDR  -1.91 -2.45                -2.49             1.14
-## PWALAND   1.72 -0.56                 1.60             0.41
-## PPERSAUT -2.04 17.29                 3.20            18.72
-## PBESAUT  -1.81  0.43                -1.79             0.81
-## PMOTSCO  -1.04 -0.19                -1.08             3.48
-## PVRAAUT   0.00  0.00                 0.00             0.01
-## PAANHANG -0.11 -0.64                -0.23             1.43
-## PTRACTOR  2.90 -0.42                 2.78             1.67
-## PWERKT    0.00  0.00                 0.00             0.02
-## PBROM    10.21 -4.88                 9.09             3.20
-## PLEVEN   -0.59  2.00                -0.03             4.75
-## PPERSONG  0.59  0.00                 0.59             0.20
-## PGEZONG   0.48  3.29                 1.54             1.99
-## PWAOREG   2.12  2.41                 2.76             1.71
-## PBRAND    2.71  7.93                 5.23            19.45
-## PZEILPL  -0.46 -1.00                -0.64             0.35
-## PPLEZIER  8.32 11.49                11.86             5.87
-## PFIETS    1.34  0.34                 1.39             3.21
-## PINBOED   1.39 -2.10                 0.96             1.36
-## PBYSTAND  1.40  2.94                 2.19             4.04
-## AWAPART   3.75  2.92                 4.58             8.12
-## AWABEDR  -0.18  1.25                 0.13             0.97
-## AWALAND   0.91  0.58                 1.04             0.34
-## APERSAUT -5.30 12.74                -1.66            17.07
-## ABESAUT   0.37 -0.99                 0.18             0.57
-## AMOTSCO  -1.75  1.38                -1.18             3.39
-## AVRAAUT   0.00  0.00                 0.00             0.00
-## AAANHANG  3.01  0.22                 2.97             1.24
-## ATRACTOR  1.63 -3.18                 0.55             0.97
-## AWERKT    1.00  0.00                 1.00             0.02
-## ABROM     8.48 -1.76                 8.01             2.37
-## ALEVEN   -4.25  2.43                -3.21             5.77
-## APERSONG -0.80  1.00                -0.64             0.20
-## AGEZONG  -1.02  0.87                -0.66             1.17
-## AWAOREG   2.43  1.70                 2.75             1.55
-## ABRAND    3.47  0.13                 3.55             8.15
-## AZEILPL   0.31 -1.00                -0.02             0.19
-## APLEZIER  9.92 11.51                12.61             5.27
-## AFIETS    2.41  0.15                 2.28             4.41
-## AINBOED   2.15 -0.27                 2.01             1.09
-## ABYSTAND  2.87  3.14                 3.79             3.29
+## MOSTYPE   1.54 -1.41                 1.28            41.73
+## MAANTHUI -0.04  1.65                 0.53             2.23
+## MGEMOMV   4.93 -1.91                 4.63             5.31
+## MGEMLEEF  5.88 -3.23                 4.97             6.46
+## MOSHOOFD  8.21  0.82                 8.56            13.16
+## MGODRK    2.74  0.41                 2.88             5.80
+## MGODPR    6.04 -2.30                 5.62            10.43
+## MGODOV    6.86 -1.87                 6.41             7.90
+## MGODGE    3.25 -0.70                 3.09            11.10
+## MRELGE    9.06 -3.02                 8.41             8.35
+## MRELSA    3.51 -2.57                 2.89             5.51
+## MRELOV    8.66 -4.83                 7.80             7.56
+## MFALLEEN  8.46 -3.37                 8.11             7.62
+## MFGEKIND  5.11 -2.06                 4.54             9.84
+## MFWEKIND  9.48 -2.65                 8.78            10.88
+## MOPLHOOG 11.18 -1.23                11.44             9.73
+## MOPLMIDD  6.03 -1.08                 5.89            11.34
+## MOPLLAAG  9.37 -1.82                 9.77            10.87
+## MBERHOOG  5.71 -0.49                 5.80             9.11
+## MBERZELF  5.58 -0.34                 5.55             5.03
+## MBERBOER  6.21 -1.71                 5.80             3.83
+## MBERMIDD  7.29  0.85                 7.77            11.41
+## MBERARBG  8.37 -2.02                 8.29             9.99
+## MBERARBO  7.61 -5.18                 6.58             9.46
+## MSKA      9.37 -3.46                 9.09             8.84
+## MSKB1     5.87 -2.08                 5.37             8.98
+## MSKB2     7.64 -2.02                 7.02             9.26
+## MSKC      8.24 -3.02                 8.10            10.04
+## MSKD      7.98 -2.99                 7.19             6.44
+## MHHUUR    6.94 -2.38                 6.67             9.52
+## MHKOOP    8.57 -2.31                 8.22             9.70
+## MAUT1     7.29 -3.35                 6.77             8.28
+## MAUT2     7.11 -2.67                 6.41             7.33
+## MAUT0     8.81 -4.07                 8.52             7.56
+## MZFONDS   8.21 -4.03                 7.77             8.78
+## MZPART    7.88 -5.29                 7.17             8.75
+## MINKM30   7.09 -1.91                 6.79             8.99
+## MINK3045  7.11 -0.74                 7.09            10.30
+## MINK4575  5.43 -2.26                 5.10             9.82
+## MINK7512  7.39 -1.10                 7.22             8.01
+## MINK123M  3.20 -1.54                 2.72             3.08
+## MINKGEM   8.33 -0.20                 8.62             8.55
+## MKOOPKLA  8.00  0.96                 8.53            10.21
+## PWAPART   4.90  3.46                 5.91            11.42
+## PWABEDR   1.02 -2.48                 0.43             1.04
+## PWALAND   2.18 -0.45                 2.01             0.34
+## PPERSAUT -3.28 16.73                 1.42            17.83
+## PBESAUT  -1.62 -3.05                -2.45             0.73
+## PMOTSCO  -0.23 -0.80                -0.47             3.63
+## PVRAAUT   0.00  0.00                 0.00             0.02
+## PAANHANG  2.11 -1.54                 1.80             1.38
+## PTRACTOR  0.93 -0.33                 0.80             1.54
+## PWERKT    1.00  0.00                 1.00             0.02
+## PBROM     9.19 -3.53                 8.41             3.18
+## PLEVEN   -1.60  0.10                -1.52             5.01
+## PPERSONG  1.01  0.00                 1.01             0.18
+## PGEZONG  -1.97  1.50                -1.39             1.86
+## PWAOREG  -0.04  2.25                 0.55             1.66
+## PBRAND    1.44  7.93                 3.97            19.45
+## PZEILPL  -1.74  0.00                -1.74             0.20
+## PPLEZIER  6.40 11.32                10.50             5.67
+## PFIETS    1.66  0.55                 1.73             3.12
+## PINBOED  -0.40 -0.08                -0.40             1.25
+## PBYSTAND  0.65  1.45                 1.17             4.07
+## AWAPART   1.82  3.12                 2.78             8.30
+## AWABEDR  -0.95 -0.21                -1.02             0.96
+## AWALAND   0.47  1.00                 0.57             0.27
+## APERSAUT -5.88 12.44                -2.53            17.18
+## ABESAUT   1.02 -0.49                 0.91             0.74
+## AMOTSCO  -1.66 -0.07                -1.61             3.35
+## AVRAAUT   0.00  0.00                 0.00             0.01
+## AAANHANG  0.34  0.31                 0.39             1.22
+## ATRACTOR  1.21  0.90                 1.48             0.86
+## AWERKT    0.00  0.00                 0.00             0.02
+## ABROM     8.09 -3.06                 7.39             2.37
+## ALEVEN   -3.46  2.85                -2.33             6.10
+## APERSONG  0.17  0.00                 0.17             0.18
+## AGEZONG  -0.49  0.58                -0.18             1.32
+## AWAOREG   1.21  2.91                 1.88             1.74
+## ABRAND    0.65  0.27                 0.76             8.20
+## AZEILPL  -1.00  0.00                -1.00             0.23
+## APLEZIER  8.54 13.19                12.68             5.82
+## AFIETS    1.11 -0.89                 0.81             4.31
+## AINBOED   1.60 -0.94                 1.36             1.18
+## ABYSTAND  1.69  2.39                 2.46             3.21
 ```
 
 ```r
@@ -429,7 +429,7 @@ ticData.Logit.FB.Pred <- predict(ticDataLogitModel.FB.Var, newdata = ticDataTest
 
 ```r
 ticDataLogitModel.RF.Var <- glm(data = ticDataTraining, CARAVAN ~ 
-#                             MOSTYPE +
+                             MOSTYPE +
                              MKOOPKLA +
                              PBRAND +
                              APERSAUT +
@@ -443,31 +443,70 @@ summary(ticDataLogitModel.RF.Var)
 ```
 ## 
 ## Call:
-## glm(formula = CARAVAN ~ MKOOPKLA + PBRAND + APERSAUT + PWAPART + 
-##     PPERSAUT, family = binomial, data = ticDataTraining)
+## glm(formula = CARAVAN ~ MOSTYPE + MKOOPKLA + PBRAND + APERSAUT + 
+##     PWAPART + PPERSAUT, family = binomial, data = ticDataTraining)
 ## 
 ## Deviance Residuals: 
 ##     Min       1Q   Median       3Q      Max  
-## -0.8015  -0.3997  -0.2735  -0.1938   3.0681  
+## -0.9183  -0.3919  -0.2642  -0.1770   3.1818  
 ## 
 ## Coefficients:
-##             Estimate Std. Error z value Pr(>|z|)    
-## (Intercept) -4.88049    0.19224 -25.388  < 2e-16 ***
-## MKOOPKLA     0.18290    0.02837   6.448 1.13e-10 ***
-## PBRAND       0.10409    0.03491   2.982  0.00287 ** 
-## APERSAUT     0.06535    0.16909   0.387  0.69911    
-## PWAPART      0.19327    0.06721   2.876  0.00403 ** 
-## PPERSAUT     0.21615    0.04048   5.339 9.32e-08 ***
+##               Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)   -3.28789    2.48298  -1.324  0.18545    
+## MOSTYPE2      -0.29252    0.80459  -0.364  0.71619    
+## MOSTYPE3      -0.14718    0.71219  -0.207  0.83627    
+## MOSTYPE4      -1.09918    1.01036  -1.088  0.27663    
+## MOSTYPE5      -0.83886    1.70879  -0.491  0.62349    
+## MOSTYPE6       0.06964    0.43492   0.160  0.87279    
+## MOSTYPE7      -0.54002    0.88981  -0.607  0.54392    
+## MOSTYPE8       0.35892    0.44901   0.799  0.42409    
+## MOSTYPE9      -0.85158    1.29158  -0.659  0.50968    
+## MOSTYPE10     -0.73360    0.46040  -1.593  0.11107    
+## MOSTYPE11     -0.79308    0.74884  -1.059  0.28956    
+## MOSTYPE12      0.37819    0.50620   0.747  0.45499    
+## MOSTYPE13     -0.40194    0.71853  -0.559  0.57589    
+## MOSTYPE15    -14.58408 1760.05879  -0.008  0.99339    
+## MOSTYPE16    -15.24145  949.21601  -0.016  0.98719    
+## MOSTYPE17    -15.57129 1281.65024  -0.012  0.99031    
+## MOSTYPE18    -14.98577  879.39062  -0.017  0.98640    
+## MOSTYPE19    -15.49185 2250.94446  -0.007  0.99451    
+## MOSTYPE20     -0.13385    1.98290  -0.068  0.94618    
+## MOSTYPE21    -15.09940 1001.40416  -0.015  0.98797    
+## MOSTYPE22     -1.14799    1.91877  -0.598  0.54964    
+## MOSTYPE23     -1.98517    1.63275  -1.216  0.22404    
+## MOSTYPE24     -1.39614    1.92557  -0.725  0.46842    
+## MOSTYPE25     -1.59390    2.26596  -0.703  0.48180    
+## MOSTYPE26     -1.45627    2.39568  -0.608  0.54327    
+## MOSTYPE27     -1.60755    2.39901  -0.670  0.50280    
+## MOSTYPE28    -15.03856  763.95252  -0.020  0.98429    
+## MOSTYPE29     -1.68373    1.71811  -0.980  0.32709    
+## MOSTYPE30     -1.21062    1.96219  -0.617  0.53725    
+## MOSTYPE31     -1.44060    2.20883  -0.652  0.51427    
+## MOSTYPE32     -0.73567    2.19665  -0.335  0.73769    
+## MOSTYPE33     -0.79068    1.56938  -0.504  0.61439    
+## MOSTYPE34     -0.80328    0.76657  -1.048  0.29469    
+## MOSTYPE35     -1.01850    1.03422  -0.985  0.32472    
+## MOSTYPE36     -0.47862    1.58526  -0.302  0.76271    
+## MOSTYPE37     -0.22672    1.27586  -0.178  0.85896    
+## MOSTYPE38     -0.49501    1.31942  -0.375  0.70753    
+## MOSTYPE39     -0.70893    0.99738  -0.711  0.47721    
+## MOSTYPE40    -15.45689  449.28245  -0.034  0.97256    
+## MOSTYPE41     -1.67492    1.33799  -1.252  0.21063    
+## MKOOPKLA      -0.02319    0.30662  -0.076  0.93972    
+## PBRAND         0.10340    0.03706   2.790  0.00527 ** 
+## APERSAUT       0.07149    0.17501   0.409  0.68289    
+## PWAPART        0.19843    0.07004   2.833  0.00461 ** 
+## PPERSAUT       0.21320    0.04147   5.141 2.74e-07 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## (Dispersion parameter for binomial family taken to be 1)
 ## 
 ##     Null deviance: 2635.5  on 5821  degrees of freedom
-## Residual deviance: 2407.5  on 5816  degrees of freedom
-## AIC: 2419.5
+## Residual deviance: 2342.9  on 5777  degrees of freedom
+## AIC: 2432.9
 ## 
-## Number of Fisher Scoring iterations: 6
+## Number of Fisher Scoring iterations: 16
 ```
 
 ```r
@@ -486,11 +525,12 @@ anova(ticDataLogitModel.RF.Var, test = "Chisq")
 ## 
 ##          Df Deviance Resid. Df Resid. Dev  Pr(>Chi)    
 ## NULL                      5821     2635.5              
-## MKOOPKLA  1   52.905      5820     2582.6 3.501e-13 ***
-## PBRAND    1   41.235      5819     2541.4 1.350e-10 ***
-## APERSAUT  1   88.456      5818     2452.9 < 2.2e-16 ***
-## PWAPART   1   13.476      5817     2439.5 0.0002416 ***
-## PPERSAUT  1   31.955      5816     2407.5 1.578e-08 ***
+## MOSTYPE  39  123.169      5782     2512.4 1.168e-10 ***
+## MKOOPKLA  1    0.447      5781     2511.9 0.5035663    
+## PBRAND    1   38.972      5780     2472.9 4.298e-10 ***
+## APERSAUT  1   87.158      5779     2385.8 < 2.2e-16 ***
+## PWAPART   1   13.158      5778     2372.6 0.0002863 ***
+## PPERSAUT  1   29.782      5777     2342.8 4.834e-08 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -534,7 +574,7 @@ c.legend[3] <- paste(c.legend[3], round((performance(pred, 'auc')@y.values)[[1]]
 
 #ROC For SVM Linear Kernel
 
-pred <- prediction(attr(ticData.SVM.Linear.Pred, "probabilities")[,2], ticDataTest$CARAVAN)
+pred <- prediction(attr(ticData.SVM.Linear.Pred, "probabilities")[,1], ticDataTest$CARAVAN)
 perf <- performance(pred, "tpr", "fpr")
 plot(perf, add = TRUE, col = "purple", lwd = 2)
 c.legend[4] <- paste(c.legend[4], round((performance(pred, 'auc')@y.values)[[1]],3))
