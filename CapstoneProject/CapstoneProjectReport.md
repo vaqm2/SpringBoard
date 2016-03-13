@@ -2,7 +2,7 @@
 ===================
 **SPRINGBOARD.COM | FOUNDATIONS OF DATA SCIENCE**
 **CAPSTONE PROJECT by VIVEK APPADURAI**
-** <appadurai.vivek@gmail.com>**
+**<appadurai.vivek@gmail.com>**
 
 
 1. PROBLEM DEFINITION:
