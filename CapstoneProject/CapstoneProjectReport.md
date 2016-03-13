@@ -1,7 +1,8 @@
 **Employing Classification Models to Predict Potential Customers for a Caravan Insurance Policy**
 ===================
 **SPRINGBOARD.COM | FOUNDATIONS OF DATA SCIENCE**
-**CAPSTONE PROJECT by VIVEK APPADURAI | <appadurai.vivek@gmail.com>**
+**CAPSTONE PROJECT by VIVEK APPADURAI**
+** <appadurai.vivek@gmail.com>**
 
 
 1. PROBLEM DEFINITION:
@@ -22,8 +23,11 @@ The dataset was released as part of the [CoIL 2000 challenge][1] organized by th
 The dataset is divided into training and test sets, the training set consists of 5,822 customer entries and the test set consists of 4,000 customer entries. The dataset is multivariate, consisting of 86 fields. Columns 1-43 are the demographic characteristics of a customer, including their religion, income, social class, education and employment levels as derived from their residence zip codes. Customers living in the same zip code tend to have the same demographic characteristics. Columns 44-85 consist of the product ownership characteristics of the customers, including information on car, boat, bicycle and surf board ownership, social security, third party health insurance, number of car, boat, fire or recreational insurance policies and the contributions made towards each. Column 86 is the prediction variable, which is binary indicating whether the person owns a caravan insurance policy.
 
 > 1 MOSTYPE Customer Subtype see L0
+
 > 2 MAANTHUI Number of houses 1 ? 10
+
 > 3 MGEMOMV Avg size household 1 ? 6
+
 > 4 MGEMLEEF Avg age see L1
 > 5 MOSHOOFD Customer main type see L2
 > 6 MGODRK Roman catholic see L3
