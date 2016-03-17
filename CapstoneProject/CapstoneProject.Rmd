@@ -71,7 +71,7 @@ Since the number of caravan policy holders within the training data is very low 
 its best to explore the assocaitions within the data by looking at the fraction of policy holders at each value 
 for the varaibles along with the proportion of population at that particular value
 
-```{r, include = FALSE}
+```{r}
 ticDataTraining <- ticDataTraining %>% 
     group_by(MAANTHUI) %>%
     mutate(percent_caravan = sum(CARAVAN) / totalCaravanPolicies) %>%
@@ -1306,7 +1306,7 @@ ggplot(ticDataTraining, aes(x = ABRAND, y = PBRAND, color = as.factor(CARAVAN)))
     xlab("Num. Fire Policies") +
     ylab("Contributions") +
     theme_bw() +
-    scale_x_continuous(breaks =seq(0, max(ticDataTraining$ABRAND), 1))
+    scale_x_continuous(breaks = seq(0, max(ticDataTraining$ABRAND), 1))
 ```
 
 ### Automatic Variable Selection, Forward and Backward
@@ -1322,6 +1322,9 @@ ticDataTest$CARAVAN <- as.factor(ticDataTest$CARAVAN)
 
 reg_Backward <- regsubsets(CARAVAN ~., data = ticDataTraining, method = "backward")
 reg_Forward <- regsubsets(CARAVAN ~., data = ticDataTraining, method = "forward")
+
+summary(reg_Backward)
+summary(reg_Forward)
 ```
 
 ### SVM Classifier Using Linear and Radial Kernels
@@ -1384,6 +1387,13 @@ ticDataLogitModel.FB.Var <- glm(data = ticDataTraining, CARAVAN ~
 summary(ticDataLogitModel.FB.Var)
 anova(ticDataLogitModel.FB.Var, test = "Chisq")
 ticData.Logit.FB.Pred <- predict(ticDataLogitModel.FB.Var, newdata = ticDataTest[-86], type = "response")
+
+table(ticDataTest$CARAVAN, ticData.Logit.FB.Pred > 0.15)
+table(ticDataTest$CARAVAN, ticData.Logit.FB.Pred > 0.14)
+table(ticDataTest$CARAVAN, ticData.Logit.FB.Pred > 0.13)
+table(ticDataTest$CARAVAN, ticData.Logit.FB.Pred > 0.12)
+table(ticDataTest$CARAVAN, ticData.Logit.FB.Pred > 0.11)
+table(ticDataTest$CARAVAN, ticData.Logit.FB.Pred > 0.10)
 ```
 
 ### Logit Model 2 Using Variable importance table from Random Forest Classifier
